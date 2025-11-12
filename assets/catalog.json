@@ -2772,7 +2772,7 @@
     {
       "id": "geely",
       "name": "Geely",
-      "logo": "assets/logos/geely1.svg",
+      "logo": "assets/logos/Geelysvg.svg",
       "models": [
         {
           "name": "Atlas I (2016+)",
