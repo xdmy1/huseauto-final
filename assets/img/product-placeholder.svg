@@ -1,0 +1,22 @@
+<svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="seatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e2e8f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cbd5e1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Car seat silhouette -->
+  <path fill="url(#seatGradient)" stroke="#94a3b8" stroke-width="2" d="M50 50 Q30 50 30 70 L30 180 Q30 200 50 200 L150 200 Q170 200 170 180 L170 70 Q170 50 150 50 L50 50 Z"/>
+  
+  <!-- Seat back -->
+  <path fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" d="M60 80 Q50 80 50 90 L50 140 Q50 150 60 150 L140 150 Q150 150 150 140 L150 90 Q150 80 140 80 L60 80 Z"/>
+  
+  <!-- Seat bottom -->
+  <path fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" d="M70 170 Q60 170 60 180 Q60 190 70 190 L130 190 Q140 190 140 180 Q140 170 130 170 L70 170 Z"/>
+  
+  <!-- Decorative lines -->
+  <line x1="70" y1="100" x2="130" y2="100" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="70" y1="120" x2="130" y2="120" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="80" y1="180" x2="120" y2="180" stroke="#cbd5e1" stroke-width="1"/>
+</svg>
