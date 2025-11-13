@@ -213,7 +213,7 @@
     {
       "id": "chery",
       "name": "Chery",
-      "logo": "assets/logos/chery.svg",
+      "logo": "assets/logos/Chery.svg",
       "models": [
         {
           "name": "Amulet (A15) 2003–2013",
@@ -280,7 +280,7 @@
     {
       "id": "chevrolet",
       "name": "Chevrolet",
-      "logo": "assets/logos/Chevrolet-Logo.svg",
+      "logo": "assets/logos/Chevrolet 1.svg",
       "models": [
         {
           "name": "Aveo hatchback 2003–2012",
@@ -377,76 +377,76 @@
       ]
     },
     {
-      "id": "citroen",
+      "id": "citroën",
       "name": "Citroën",
-      "logo": "assets/logos/citroennew.svg",
+      "logo": "assets/logos/Citroën.svg",
       "models": [
         {
-          "name": "Citroën C4 hatchback 3 uși 2004–2011",
+          "name": "C4 hatchback 3 uși 2004–2011",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C4 hatchback 5 uși 2004–2011",
+          "name": "C4 hatchback 5 uși 2004–2011",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C4 hatchback II din 2011",
+          "name": "C4 hatchback II din 2011",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C4 sedan 2013–2022",
+          "name": "C4 sedan 2013–2022",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C4 Aircross 2012–2015 (vezi secțiunea Mitsubishi ASX)",
+          "name": "C4 Aircross 2012–2015 (vezi secțiunea Mitsubishi ASX)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C5 (echipare completă, cu cotieră) 2007–2017",
+          "name": "C5 (echipare completă, cu cotieră) 2007–2017",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C5 (echipare simplă, fără cotieră) 2007–2017",
+          "name": "C5 (echipare simplă, fără cotieră) 2007–2017",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C-Crosser 2007–2013 (vezi secțiunea Mitsubishi Outlander XL)",
+          "name": "C-Crosser 2007–2013 (vezi secțiunea Mitsubishi Outlander XL)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C-Elysée / Peugeot 301 – bancheta spate din 2 bucăți din 2012",
+          "name": "C-Elysée / Peugeot 301 – bancheta spate din 2 bucăți din 2012",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën C-Elysée / Peugeot 301 – banchetă întreagă din 2012",
+          "name": "C-Elysée / Peugeot 301 – banchetă întreagă din 2012",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Berlingo I (2 locuri) 1996–2012 (vezi secțiunea Peugeot Partner I)",
+          "name": "Berlingo I (2 locuri) 1996–2012 (vezi secțiunea Peugeot Partner I)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Berlingo I (5 locuri) 1996–2012 (vezi secțiunea Peugeot Partner I)",
+          "name": "Berlingo I (5 locuri) 1996–2012 (vezi secțiunea Peugeot Partner I)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Berlingo II (2 locuri) din 2008 (vezi secțiunea Peugeot Partner / Tepee)",
+          "name": "Berlingo II (2 locuri) din 2008 (vezi secțiunea Peugeot Partner / Tepee)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Berlingo II (5 locuri) din 2008 (vezi secțiunea Peugeot Partner / Tepee)",
+          "name": "Berlingo II (5 locuri) din 2008 (vezi secțiunea Peugeot Partner / Tepee)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Jumper (3 locuri) din 2006 (vezi secțiunea Fiat Ducato)",
+          "name": "Jumper (3 locuri) din 2006 (vezi secțiunea Fiat Ducato)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën Jumpy II (8 locuri) 2007–2016 (vezi secțiunea Fiat Scudo II)",
+          "name": "Jumpy II (8 locuri) 2007–2016 (vezi secțiunea Fiat Scudo II)",
           "years": "2000-2025"
         },
         {
-          "name": "Citroën SpaceTourer I (8 locuri) din 2016 (vezi secțiunea Peugeot Traveller I)",
+          "name": "SpaceTourer I (8 locuri) din 2016 (vezi secțiunea Peugeot Traveller I)",
           "years": "2000-2025"
         }
       ]
@@ -481,7 +481,7 @@
     {
       "id": "fiat",
       "name": "Fiat",
-      "logo": "assets/logos/Fiat.svg",
+      "logo": "assets/logos/Fiat_(logo).svg",
       "models": [
         {
           "name": "Albea (Base) sedan (banchetă întreagă) 2002–2012",
@@ -532,7 +532,7 @@
     {
       "id": "ford",
       "name": "Ford",
-      "logo": "assets/logos/Ford.svg",
+      "logo": "assets/logos/Ford_logo_flat.svg",
       "models": [
         {
           "name": "C-Max I monovolum 2003–2010",
@@ -793,7 +793,7 @@
     {
       "id": "honda",
       "name": "Honda",
-      "logo": "assets/logos/Honda.svg",
+      "logo": "assets/logos/honda.svg",
       "models": [
         {
           "name": "Accord VII sedan 2002–2007",
@@ -876,7 +876,7 @@
     {
       "id": "hyundai",
       "name": "Hyundai",
-      "logo": "assets/logos/Hyundai.svg",
+      "logo": "assets/logos/hyunday.svg",
       "models": [
         {
           "name": "Accent 1999–2011",
@@ -939,23 +939,23 @@
           "years": "2000-2025"
         },
         {
-          "name": "Hyundai i20 hatchback 2008–2014",
+          "name": "i20 hatchback 2008–2014",
           "years": "2000-2025"
         },
         {
-          "name": "Hyundai i30 I hatchback 2007–2012",
+          "name": "i30 I hatchback 2007–2012",
           "years": "2000-2025"
         },
         {
-          "name": "Hyundai i30 II hatchback/universal 2012–2016",
+          "name": "i30 II hatchback/universal 2012–2016",
           "years": "2000-2025"
         },
         {
-          "name": "Hyundai i40 sedan/universal din 2011",
+          "name": "i40 sedan/universal din 2011",
           "years": "2000-2025"
         },
         {
-          "name": "Hyundai ix35 2010–2015",
+          "name": "ix35 2010–2015",
           "years": "2000-2025"
         },
         {
@@ -1047,7 +1047,7 @@
     {
       "id": "kia",
       "name": "Kia",
-      "logo": "assets/logos/Kia.svg",
+      "logo": "assets/logos/KIA_logo3.svg",
       "models": [
         {
           "name": "Bongo III (3 locuri) din 2006",
@@ -1244,32 +1244,32 @@
       ]
     },
     {
-      "id": "land_rover",
+      "id": "landrover",
       "name": "Land Rover",
-      "logo": "assets/logos/Land-Rover.svg",
+      "logo": "assets/logos/Land_Rover_logo_black_1.svg",
       "models": [
         {
-          "name": "Rover Freelander II 2006–2012",
+          "name": "Freelander II 2006–2012",
           "years": "2000-2025"
         },
         {
-          "name": "Rover Freelander II facelift 2012–2014",
+          "name": "Freelander II facelift 2012–2014",
           "years": "2000-2025"
         },
         {
-          "name": "Rover Discovery III / IV 2004–2016 (trei scaune separate)",
+          "name": "Discovery III / IV 2004–2016 (trei scaune separate)",
           "years": "2000-2025"
         },
         {
-          "name": "Rover Discovery III / IV 2004–2016 (bancheta spate din 2 bucăți)",
+          "name": "Discovery III / IV 2004–2016 (bancheta spate din 2 bucăți)",
           "years": "2000-2025"
         },
         {
-          "name": "Rover Discovery Sport fără cotieră spate 2014–2019",
+          "name": "Discovery Sport fără cotieră spate 2014–2019",
           "years": "2000-2025"
         },
         {
-          "name": "Rover Discovery Sport cu cotieră spate 2014–2019",
+          "name": "Discovery Sport cu cotieră spate 2014–2019",
           "years": "2000-2025"
         }
       ]
@@ -1370,9 +1370,9 @@
       ]
     },
     {
-      "id": "mercedes",
+      "id": "mercedes_benz",
       "name": "Mercedes-Benz",
-      "logo": "assets/logos/Mercedes-benz.svg",
+      "logo": "assets/logos/Mercedes-Benz.svg",
       "models": [
         {
           "name": "A-Class (W168) 1997–2004 (versiune simplă)",
@@ -1499,7 +1499,7 @@
     {
       "id": "mitsubishi",
       "name": "Mitsubishi",
-      "logo": "assets/logos/Mitsubishi.svg",
+      "logo": "assets/logos/mitsubishi.svg",
       "models": [
         {
           "name": "ASX din 2010 / Citroën C4 Aircross 2012–2015 / Peugeot 4008 din 2012",
@@ -1646,7 +1646,7 @@
     {
       "id": "nissan",
       "name": "Nissan",
-      "logo": "assets/logos/Nissan.svg",
+      "logo": "assets/logos/Nissan_2020_logo.svg",
       "models": [
         {
           "name": "Almera Classic (spătar spate tip „cocoașe”) 2006–2013",
@@ -1773,7 +1773,7 @@
     {
       "id": "opel",
       "name": "Opel",
-      "logo": "assets/logos/Opel.svg",
+      "logo": "assets/logos/Group.svg",
       "models": [
         {
           "name": "Antara 2006–2018 (vezi secțiunea Chevrolet Captiva)",
@@ -2129,8 +2129,8 @@
     },
     {
       "id": "seat",
-      "name": "Seat",
-      "logo": "assets/logos/Seat.svg",
+      "name": "SEAT",
+      "logo": "assets/logos/SEAT_Logo_from_2017.svg",
       "models": [
         {
           "name": "Ibiza IV hatchback (5 uși) – bancheta spate din 2 bucăți 2008–2017",
@@ -2172,7 +2172,7 @@
     {
       "id": "suzuki",
       "name": "Suzuki",
-      "logo": "assets/logos/Suzuki.svg",
+      "logo": "assets/logos/suzuki.svg",
       "models": [
         {
           "name": "Grand Vitara II (3 uși) 1997–2006",
@@ -2243,142 +2243,142 @@
     {
       "id": "skoda",
       "name": "Škoda",
-      "logo": "assets/logos/Skoda.svg",
+      "logo": "assets/logos/skoda.svg",
       "models": [
         {
-          "name": "Škoda Fabia I sedan/hatchback/universal – bancheta spate din 2 bucăți 1999–2007",
+          "name": "Fabia I sedan/hatchback/universal – bancheta spate din 2 bucăți 1999–2007",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Fabia II hatchback (banchetă întreagă) 2007–2014",
+          "name": "Fabia II hatchback (banchetă întreagă) 2007–2014",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Fabia II hatchback/universal – bancheta spate din 2 bucăți 2007–2014",
+          "name": "Fabia II hatchback/universal – bancheta spate din 2 bucăți 2007–2014",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Fabia II Sport (RS) hatchback 2010–2014",
+          "name": "Fabia II Sport (RS) hatchback 2010–2014",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Karoq (Active) fără cotieră spate din 2017 / Volkswagen Taos I din 2020 (cu tapițerie suplimentară pentru tetierele spate)",
+          "name": "Karoq (Active) fără cotieră spate din 2017 / Volkswagen Taos I din 2020 (cu tapițerie suplimentară pentru tetierele spate)",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Karoq (Ambition) fără cotieră spate din 2017",
+          "name": "Karoq (Ambition) fără cotieră spate din 2017",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Karoq (Style) cu cotieră spate din 2017",
+          "name": "Karoq (Style) cu cotieră spate din 2017",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Kodiaq (Active) fără cotieră spate din 2016",
+          "name": "Kodiaq (Active) fără cotieră spate din 2016",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Kodiaq (Ambition, Scout) cu cotieră spate din 2016",
+          "name": "Kodiaq (Ambition, Scout) cu cotieră spate din 2016",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Kodiaq (Style) cu cotieră spate din 2016",
+          "name": "Kodiaq (Style) cu cotieră spate din 2016",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A5 Ambiente (banchetă întreagă) 2007–2013",
+          "name": "Octavia A5 Ambiente (banchetă întreagă) 2007–2013",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A5 Elegance hatchback/universal – bancheta spate din 2 bucăți 2004–2013",
+          "name": "Octavia A5 Elegance hatchback/universal – bancheta spate din 2 bucăți 2004–2013",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A7 Ambiente hatchback/universal fără cotieră spate 2013–2020",
+          "name": "Octavia A7 Ambiente hatchback/universal fără cotieră spate 2013–2020",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A7 Elegance hatchback/universal cu cotieră spate 2013–2020",
+          "name": "Octavia A7 Elegance hatchback/universal cu cotieră spate 2013–2020",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A7 RS hatchback/universal (scaune față sport) 2013–2020",
+          "name": "Octavia A7 RS hatchback/universal (scaune față sport) 2013–2020",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A8 (Active, Ambition) din 2019",
+          "name": "Octavia A8 (Active, Ambition) din 2019",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia A8 RS hatchback/universal (scaune față sport) din 2020",
+          "name": "Octavia A8 RS hatchback/universal (scaune față sport) din 2020",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia Tour hatchback/universal 1996–2010",
+          "name": "Octavia Tour hatchback/universal 1996–2010",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Octavia Tour Sport hatchback 1996–2010",
+          "name": "Octavia Tour Sport hatchback 1996–2010",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Rapid (banchetă întreagă) din 2014",
+          "name": "Rapid (banchetă întreagă) din 2014",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Rapid I/II – bancheta spate din 2 bucăți din 2014 / Volkswagen Polo din 2020 (fără cotieră spate)",
+          "name": "Rapid I/II – bancheta spate din 2 bucăți din 2014 / Volkswagen Polo din 2020 (fără cotieră spate)",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Rapid I/II – bancheta spate din 2 bucăți din 2014 / Volkswagen Polo din 2020 (cu cotieră spate)",
+          "name": "Rapid I/II – bancheta spate din 2 bucăți din 2014 / Volkswagen Polo din 2020 (cu cotieră spate)",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Rapid I/II Sport din 2014 / Volkswagen Polo Sport din 2020 (fără cotieră spate)",
+          "name": "Rapid I/II Sport din 2014 / Volkswagen Polo Sport din 2020 (fără cotieră spate)",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Rapid I/II Sport din 2014 / Volkswagen Polo Sport din 2020 (cu cotieră spate)",
+          "name": "Rapid I/II Sport din 2014 / Volkswagen Polo Sport din 2020 (cu cotieră spate)",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Roomster 2006–2015",
+          "name": "Roomster 2006–2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb II (Elegance) hatchback 2008–2013",
+          "name": "Superb II (Elegance) hatchback 2008–2013",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb II (Ambition) hatchback 2008–2013",
+          "name": "Superb II (Ambition) hatchback 2008–2013",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb II facelift hatchback 2013–2015",
+          "name": "Superb II facelift hatchback 2013–2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb III (Active) (spătar pasager transformabil) din 2015",
+          "name": "Superb III (Active) (spătar pasager transformabil) din 2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb III (Active) (spătare față identice) din 2015",
+          "name": "Superb III (Active) (spătare față identice) din 2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb III (Ambition, Style) (spătar pasager transformabil) din 2015",
+          "name": "Superb III (Ambition, Style) (spătar pasager transformabil) din 2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Superb III (Ambition, Style) (spătare față identice) din 2015",
+          "name": "Superb III (Ambition, Style) (spătare față identice) din 2015",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Yeti (spătar pasager transformabil) din 2013",
+          "name": "Yeti (spătar pasager transformabil) din 2013",
           "years": "2000-2025"
         },
         {
-          "name": "Škoda Yeti (spătare față identice) din 2009",
+          "name": "Yeti (spătare față identice) din 2009",
           "years": "2000-2025"
         }
       ]
@@ -2397,7 +2397,7 @@
     {
       "id": "toyota",
       "name": "Toyota",
-      "logo": "assets/logos/Toyota.svg",
+      "logo": "assets/logos/toyota.svg",
       "models": [
         {
           "name": "Auris I hatchback 2007–2012",
@@ -2596,7 +2596,7 @@
     {
       "id": "volkswagen",
       "name": "Volkswagen",
-      "logo": "assets/logos/Volkswagen.svg",
+      "logo": "assets/logos/Volkswagen_logo_2019.svg",
       "models": [
         {
           "name": "Amarok I din 2010",
@@ -2859,7 +2859,7 @@
     {
       "id": "volvo",
       "name": "Volvo",
-      "logo": "assets/logos/Volvo.svg",
+      "logo": "assets/logos/volvo.svg",
       "models": [
         {
           "name": "C30 2006–2013",
