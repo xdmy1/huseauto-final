@@ -2572,7 +2572,7 @@
     {
       "id": "dodge",
       "name": "Dodge",
-      "logo": "assets/logos/Dodge.svg",
+      "logo": "assets/logos/dodgenew.svg",
       "models": [
         {
           "name": "Caliber (2006–2011)",
@@ -2674,7 +2674,7 @@
     {
       "id": "peugeot",
       "name": "Peugeot",
-      "logo": "assets/logos/Peugeot.svg",
+      "logo": "assets/logos/peugeotnew.svg",
       "models": [
         {
           "name": "Caliber (2006–2011)",
@@ -2772,7 +2772,7 @@
     {
       "id": "geely",
       "name": "Geely",
-      "logo": "assets/logos/geelynew.svg",
+      "logo": "assets/logos/geelynew1.svg",
       "models": [
         {
           "name": "Atlas I (2016+)",
