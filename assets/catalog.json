@@ -1924,7 +1924,7 @@
     {
       "id": "mazda",
       "name": "Mazda",
-      "logo": "assets/logos/image 257.svg",
+      "logo": "assets/logos/mazdanew.svg",
       "models": [
         {
           "name": "3 (BK)/ (2004–2009)",
@@ -2538,7 +2538,7 @@
     {
       "id": "minicooper",
       "name": "Mini Cooper",
-      "logo": "assets/logos/mini-cooper.svg",
+      "logo": "assets/logos/minicoopernew.svg",
       "models": [
         {
           "name": "Cooper",
@@ -2561,7 +2561,7 @@
     {
       "id": "tesla",
       "name": "Tesla",
-      "logo": "assets/logos/Tesla.svg",
+      "logo": "assets/logos/teslanew.svg",
       "models": [
         {
           "name": "Model S (2012+)",
@@ -2599,7 +2599,7 @@
     {
       "id": "citroën",
       "name": "Citroën",
-      "logo": "assets/logos/citroen.svg",
+      "logo": "assets/logos/citroennew.svg",
       "models": [
         {
           "name": "Citroën C4 (2004–2011)",
