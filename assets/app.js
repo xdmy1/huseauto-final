@@ -569,7 +569,7 @@ function renderProductGroups() {
                 const productImage = document.createElement('img');
                 productImage.src = product.image;
                 productImage.alt = `${product.title} - ${product.color}`;
-                productImage.className = 'w-full h-full object-cover rounded-lg';
+                productImage.className = 'w-full h-full object-contain rounded-lg';
                 productImage.onerror = function() {
                     // Fallback to placeholder if image fails to load
                     this.style.display = 'none';
