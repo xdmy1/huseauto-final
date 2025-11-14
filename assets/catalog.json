@@ -535,11 +535,11 @@
       "logo": "assets/logos/Ford_logo_flat.svg",
       "models": [
         {
-          "name": "C-Max I monovolum 2003–2010",
+          "name": "C-Max I minivan 2003–2010",
           "years": "2000-2025"
         },
         {
-          "name": "C-Max II Grand monovolum 5 locuri 2010–2019",
+          "name": "C-Max II Grand minivan 5 locuri 2010–2019",
           "years": "2000-2025"
         },
         {
@@ -591,11 +591,19 @@
           "years": "2000-2025"
         },
         {
-          "name": "Focus III Ambiente / Trend sedan/hatchback/universal din 2011",
+          "name": "Focus III Ambiente / Trend sedan/hatchback/universal cu cotieră în spate din 2011",
           "years": "2000-2025"
         },
         {
-          "name": "Focus III Sport / Titanium sedan/hatchback/universal din 2011",
+          "name": "Focus III Ambiente / Trend sedan/hatchback/universal fără cotieră în spate din 2011",
+          "years": "2000-2025"
+        },
+        {
+          "name": "Focus III Sport / Titanium sedan/hatchback/universal cu cotieră în spate din 2011",
+          "years": "2000-2025"
+        },
+        {
+          "name": "Focus III Sport / Titanium sedan/hatchback/universal fără cotieră în spate din 2011",
           "years": "2000-2025"
         },
         {
@@ -651,11 +659,11 @@
           "years": "2000-2025"
         },
         {
-          "name": "S-Max I monovolum 2006–2015",
+          "name": "S-Max I minivan 2006–2015",
           "years": "2000-2025"
         },
         {
-          "name": "S-Max II monovolum din 2015",
+          "name": "S-Max II minivan din 2015",
           "years": "2000-2025"
         },
         {
