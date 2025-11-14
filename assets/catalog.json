@@ -213,7 +213,7 @@
     {
       "id": "chery",
       "name": "Chery",
-      "logo": "assets/logos/Chery.svg",
+      "logo": "assets/logos/cherynew.svg",
       "models": [
         {
           "name": "Amulet (A15) 2003–2013",
@@ -699,7 +699,7 @@
     {
       "id": "geely",
       "name": "Geely",
-      "logo": "assets/logos/geelynew1.svg",
+      "logo": "assets/logos/geelynew.svg",
       "models": [
         {
           "name": "Atlas I din 2016",
@@ -754,7 +754,7 @@
     {
       "id": "haval",
       "name": "Haval",
-      "logo": "assets/logos/Haval.svg",
+      "logo": "assets/logos/havalnew.svg",
       "models": [
         {
           "name": "Dargo / X din 2022",
