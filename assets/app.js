@@ -2,6 +2,84 @@
 window.__catalog = null;
 window.__selectedProduct = null;
 
+// Pricing logic based on seating capacity
+function determineSeatingCapacity(modelName) {
+    if (!modelName) return 5; // default
+    
+    // Look for explicit seat numbers
+    const seatPatterns = [
+        /(\d+)\s+locuri/,  // "5 locuri", "7 locuri", etc.
+        /\((\d+)\s+locuri\)/,  // "(5 locuri)"
+        /(\d+)–(\d+)\s+locuri/,  // "8–11 locuri"
+    ];
+    
+    for (const pattern of seatPatterns) {
+        const match = modelName.match(pattern);
+        if (match) {
+            if (pattern.source === '(\\d+)–(\\d+)\\s+locuri') {
+                // For ranges like "8–11 locuri", take the higher number
+                return parseInt(match[2]);
+            } else {
+                return parseInt(match[1]);
+            }
+        }
+    }
+    
+    // Look for door indicators (2 doors usually = 2 seats, 3 doors = 4-5 seats, etc.)
+    if (modelName.includes("2 uși") || modelName.includes("Coupe 2 uși")) {
+        return 2;  // Sports cars, coupes
+    }
+    
+    // Special cases - commercial vehicles that typically have more seats
+    const commercialKeywords = [
+        "Sprinter", "Transit", "Ducato", "Master", "Crafter", "Vito", "Viano", 
+        "Multivan", "Caravelle", "Transporter", "ProMaster", "Daily",
+        "minivan", "monovolum", "Grand", "Traveller", "SpaceTourer", "Zafira Life"
+    ];
+    
+    for (const keyword of commercialKeywords) {
+        if (modelName.includes(keyword)) {
+            return 7;  // These are likely 7+ seaters unless otherwise specified
+        }
+    }
+    
+    // Look for family/large car indicators
+    const familyKeywords = ["Grand", "XL", "Plus", "Max", "Maxi"];
+    for (const keyword of familyKeywords) {
+        if (modelName.includes(keyword)) {
+            return 7;
+        }
+    }
+    
+    // Default assumption for most cars (sedans, hatchbacks, SUVs)
+    return 5;
+}
+
+function calculatePriceForSeats(seatCount, isRomb = false) {
+    const basePriceRomb = 4300;
+    const basePriceRegular = 4200;
+    
+    if (seatCount === 2) {
+        return 2200;
+    } else if (seatCount === 3) {
+        return 3000;
+    } else if (seatCount === 4 || seatCount === 5) {
+        return isRomb ? basePriceRomb : basePriceRegular;
+    } else if (seatCount >= 7) {
+        return "Solicita pret";
+    } else {
+        return isRomb ? basePriceRomb : basePriceRegular;
+    }
+}
+
+function getAdjustedPrice(product, selectedModel = "") {
+    const seatCount = determineSeatingCapacity(selectedModel);
+    const isRomb = product.title && product.title.toLowerCase().includes("romb");
+    const calculatedPrice = calculatePriceForSeats(seatCount, isRomb);
+    
+    return calculatedPrice;
+}
+
 // Utility functions
 function showToast(message, type = 'success') {
     const toastContainer = document.getElementById('toastContainer');
@@ -600,7 +678,9 @@ function renderProductGroups() {
             
             const price = document.createElement('div');
             price.className = 'text-lg md:text-xl font-bold text-[#F7941E]';
-            price.textContent = `${product.price} MDL`;
+            const selected = getSelected();
+            const adjustedPrice = getAdjustedPrice(product, selected.model);
+            price.textContent = adjustedPrice === "Solicita pret" ? "Solicita pret" : `${adjustedPrice} MDL`;
             
             info.appendChild(color);
             info.appendChild(code);
@@ -664,7 +744,8 @@ function updateModalContent(product) {
     
     if (elements.modalProductTitle) elements.modalProductTitle.textContent = `${product.title} - ${product.code}`;
     if (elements.modalProductColor) elements.modalProductColor.textContent = product.color;
-    if (elements.modalProductPrice) elements.modalProductPrice.textContent = `${product.price} MDL`;
+    const adjustedPrice = getAdjustedPrice(product, selected.model);
+    if (elements.modalProductPrice) elements.modalProductPrice.textContent = adjustedPrice === "Solicita pret" ? "Solicita pret" : `${adjustedPrice} MDL`;
     if (elements.modalSelectedBrand) elements.modalSelectedBrand.textContent = selected.brand || '-';
     if (elements.modalSelectedModel) elements.modalSelectedModel.textContent = selected.model || '-';
 }
@@ -773,7 +854,7 @@ function buildModalOrderObject() {
         productTitle: window.__selectedProduct.title,
         productCode: window.__selectedProduct.code,
         color: window.__selectedProduct.color,
-        price: window.__selectedProduct.price,
+        price: getAdjustedPrice(window.__selectedProduct, getSelected().model),
         phone: phone
     };
 }
