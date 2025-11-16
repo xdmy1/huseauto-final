@@ -111,24 +111,62 @@
                     <span id="lastUpdate" class="text-xs text-slate-500"></span>
                 </div>
                 
+                <!-- Important Notices -->
+                <div class="space-y-4 mb-8 max-w-3xl mx-auto">
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <p class="text-blue-800 text-sm font-medium">
+                            📋 Această pagină afișează doar disponibilitatea stocului. Pentru prețuri, vă rugăm să ne contactați.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-orange-800 font-semibold text-sm mb-1">⏰ Timp de Livrare</h4>
+                                <p class="text-orange-700 text-sm">
+                                    <strong>Comenzile din stocul live necesită 3-4 săptămâni pentru livrare</strong><br>
+                                    Produsele sunt comandate special de la furnizor și confecționate la dimensiunile exacte ale mașinii dumneavoastră.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                        <p class="text-green-800 text-sm font-medium">
+                            💺 Prețul afișat este pentru toate scaunele modelului selectat.
+                        </p>
+                    </div>
+                </div>
+                
                 <!-- Controls -->
-                <div class="flex flex-col sm:flex-row gap-4 items-center justify-center mb-8">
-                    <div class="flex items-center gap-2">
+                <div class="flex flex-col gap-4 mb-8 max-w-4xl mx-auto px-2">
+                    <!-- Search and Refresh Row -->
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="searchInput" placeholder="Caută după nume sau cod..." 
-                               class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent w-64">
-                        <button id="refreshBtn" class="px-4 py-2 bg-[#F7941E] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
+                               class="flex-1 px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base w-full">
+                        <button id="refreshBtn" class="px-4 py-3 bg-[#F7941E] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 w-full sm:w-auto sm:min-w-[120px]">
                             <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
-                            Reîmprospătează
+                            <span class="hidden sm:inline">Reîmprospătează</span>
+                            <span class="sm:hidden">Refresh</span>
                         </button>
                     </div>
-                    <select id="filterSelect" class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent">
-                        <option value="all">Toate produsele</option>
-                        <option value="in-stock">În stoc</option>
-                        <option value="low-stock">Stoc limitat</option>
-                        <option value="out-of-stock">Fără stoc</option>
-                    </select>
+                    
+                    <!-- Filter Row -->
+                    <div class="w-full">
+                        <select id="filterSelect" class="w-full sm:w-auto sm:min-w-[200px] sm:mx-auto sm:block px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
+                            <option value="all">Toate produsele</option>
+                            <option value="in-stock">În stoc</option>
+                            <option value="low-stock">Stoc limitat</option>
+                            <option value="out-of-stock">Fără stoc</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </section>
@@ -322,17 +360,24 @@
         // Global variables
         let stockData = [];
         let filteredData = [];
+        let isLoading = false;
+        let loadAttempts = 0;
+        const maxLoadAttempts = 2; // Limit retry attempts
         
-        // API configuration
+        // API configuration - faster proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Multiple CORS proxies to try
+        // Optimized proxy list - fastest first
         const PROXY_URLS = [
-            'https://api.allorigins.win/raw?url=',
             'https://corsproxy.io/?',
-            'https://api.codetabs.com/v1/proxy?quest=',
-            'https://cors-anywhere.herokuapp.com/'
+            'https://api.allorigins.win/raw?url='
         ];
+        
+        // Lazy loading configuration
+        let currentPage = 0;
+        const itemsPerPage = 20; // Smaller chunks for faster initial load
+        let displayedItems = [];
+        let isRenderingChunks = false;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -575,7 +620,7 @@
             document.getElementById('outOfStockItems').textContent = outOfStock;
         }
 
-        // Render stock items
+        // Render stock items with lazy loading for better performance  
         function renderStock() {
             if (filteredData.length === 0) {
                 stockGrid.classList.add('hidden');
@@ -586,54 +631,87 @@
             stockGrid.classList.remove('hidden');
             noResults.classList.add('hidden');
 
-            stockGrid.innerHTML = filteredData.map(item => {
-                const stockStatus = getStockStatus(item);
-                const stockClass = getStockClass(stockStatus);
-                
-                return `
-                    <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}">
-                        ${item.picture ? `
-                            <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
-                                <img src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
-                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+            // Reset for new data
+            currentPage = 0;
+            displayedItems = [];
+            stockGrid.innerHTML = '';
+            
+            // Load first chunk immediately for fast initial display
+            loadNextChunk();
+        }
+
+        // Load items in chunks for better performance (lazy loading)
+        function loadNextChunk() {
+            if (isRenderingChunks || currentPage * itemsPerPage >= filteredData.length) {
+                return;
+            }
+
+            isRenderingChunks = true;
+            const startIndex = currentPage * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const chunk = filteredData.slice(startIndex, endIndex);
+
+            // Use requestAnimationFrame for smoother rendering
+            requestAnimationFrame(() => {
+                const chunkHTML = chunk.map((item, index) => {
+                    const stockStatus = getStockStatus(item);
+                    const stockClass = getStockClass(stockStatus);
+                    
+                    return `
+                        <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}" style="opacity: 0; animation: fadeInUp 0.3s ease-out forwards; animation-delay: ${index * 50}ms;">
+                            ${item.picture ? `
+                                <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
+                                    <img loading="lazy" src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
+                                        <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
+                            `}
+                            
+                            <div class="mb-3">
+                                <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
+                                ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
                             </div>
-                        ` : `
-                            <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
-                                <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        `}
-                        
-                        <div class="mb-3">
-                            <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
-                            ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
-                        </div>
 
-                        <div class="flex items-center justify-end mb-3">
-                            <div class="text-sm ${getStockStatusColor(stockStatus)}">
-                                ${getStockStatusText(stockStatus, item.quantity)}
+                            <div class="flex items-center justify-end mb-3">
+                                <div class="text-sm ${getStockStatusColor(stockStatus)}">
+                                    ${getStockStatusText(stockStatus, item.quantity)}
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="flex items-center justify-between">
-                            <div class="text-xs text-slate-500">
-                                ID: ${item.id}
+                            <div class="flex items-center justify-between">
+                                <div class="text-xs text-slate-500">
+                                    ID: ${item.id}
+                                </div>
+                                <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
+                                        class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                        ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
+                                    ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
+                                </button>
                             </div>
-                            <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
-                                    class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
-                                    ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
-                                ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
-                            </button>
                         </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+
+                stockGrid.innerHTML += chunkHTML;
+                displayedItems.push(...chunk);
+                currentPage++;
+                isRenderingChunks = false;
+
+                // Auto-load next chunk after a small delay for seamless experience
+                if (currentPage * itemsPerPage < filteredData.length) {
+                    setTimeout(() => loadNextChunk(), 150);
+                }
+            });
         }
 
         // Helper functions for stock status
@@ -738,6 +816,16 @@
             @keyframes spin {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
+            }
+            @keyframes fadeInUp {
+                from { 
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
         `;
         document.head.appendChild(style);
