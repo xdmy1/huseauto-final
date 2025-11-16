@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stoc Live - AutoHuse.md | Verifică Disponibilitatea (Fără Prețuri)</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Verifică stocul disponibil în timp real pentru husele auto AutoHuse.md. Disponibilitate actualizată live pentru toate modelele de mașini.">
+    <meta name="keywords" content="stoc huse auto, disponibilitate huse auto, verifica stoc, huse auto moldova, stock live">
+    <meta name="author" content="AutoHuse.md">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <link rel="icon" href="./assets/img/logo.png">
+    <style>
+        body { font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+        h1, h2, h3 { font-weight: 800; font-variation-settings: "opsz" 24; }
+        .hero-title { font-weight: 900; font-variation-settings: "opsz" 36; }
+        .loading-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .stock-item { transition: all 0.3s ease; }
+        .stock-item:hover { transform: translateY(-2px); }
+        .in-stock { border-left: 4px solid #10b981; }
+        .out-of-stock { border-left: 4px solid #ef4444; }
+        .low-stock { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body class="bg-white text-slate-800">
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 bg-white shadow-sm">
+        <div class="max-w-[1200px] mx-auto px-4 md:px-6">
+            <div class="h-16 flex items-center justify-between">
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <div class="w-10 h-10 bg-[#F7941E] rounded-full flex items-center justify-center">
+                        <img src="assets/img/logo.png" alt="AutoHuse.md - Huse Auto Premium" class="w-full h-full object-contain">
+                    </div>
+                    <span class="font-semibold text-slate-900">AutoHuse</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="index.html" class="text-slate-700 hover:text-slate-900 transition-colors">Acasă</a>
+                    <a href="masini.html" class="text-slate-700 hover:text-slate-900 transition-colors">Mașini</a>
+                    <a href="lucrari.html" class="text-slate-700 hover:text-slate-900 transition-colors">Lucrări</a>
+                    <a href="despre.html" class="text-slate-700 hover:text-slate-900 transition-colors">Despre Noi</a>
+                    <a href="stoc.html" class="text-slate-700 hover:text-slate-900 transition-colors font-semibold text-slate-900">Stoc Live</a>
+                </div>
+
+                <!-- Desktop Contact -->
+                <a href="tel:+37360607028" class="hidden md:flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <div class="w-8 h-8 bg-[#F7941E] rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-600">Ajutor?</div>
+                        <div class="text-sm font-medium">+373 60607028</div>
+                    </div>
+                </a>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                    <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="md:hidden hidden border-t border-slate-200">
+                <div class="py-4 space-y-2">
+                    <a href="index.html" class="block px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg">Acasă</a>
+                    <a href="masini.html" class="block px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg">Mașini</a>
+                    <a href="lucrari.html" class="block px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg">Lucrări</a>
+                    <a href="despre.html" class="block px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg">Despre Noi</a>
+                    <a href="stoc.html" class="block px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors rounded-lg font-semibold text-slate-900">Stoc Live</a>
+                    <div class="px-4 py-2 border-t border-slate-200 mt-2 pt-4">
+                        <a href="tel:+37360607028" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                            <div class="w-8 h-8 bg-[#F7941E] rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-600">Ajutor?</div>
+                                <div class="text-sm font-medium">+373 60607028</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="max-w-[1200px] mx-auto px-4 md:px-6 py-10 md:py-14">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-black mb-4">Stoc Live - Verifică Disponibilitatea</h1>
+                <p class="text-lg text-slate-600 mb-4">Informații actualizate în timp real despre disponibilitatea produselor noastre</p>
+                
+                
+                <!-- Live indicator -->
+                <div class="flex items-center justify-center gap-2 mb-6">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm text-slate-600">Actualizat în timp real</span>
+                    <span id="lastUpdate" class="text-xs text-slate-500"></span>
+                </div>
+                
+                <!-- Controls -->
+                <div class="flex flex-col sm:flex-row gap-4 items-center justify-center mb-8">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="searchInput" placeholder="Caută după nume sau cod..." 
+                               class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent w-64">
+                        <button id="refreshBtn" class="px-4 py-2 bg-[#F7941E] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
+                            <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Reîmprospătează
+                        </button>
+                    </div>
+                    <select id="filterSelect" class="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent">
+                        <option value="all">Toate produsele</option>
+                        <option value="in-stock">În stoc</option>
+                        <option value="low-stock">Stoc limitat</option>
+                        <option value="out-of-stock">Fără stoc</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stock Grid -->
+        <section class="max-w-[1200px] mx-auto px-4 md:px-6 pb-10 md:pb-14">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12">
+                <div class="loading-pulse bg-slate-200 rounded-2xl p-8 mb-4 mx-auto max-w-md">
+                    <div class="h-6 bg-slate-300 rounded mb-4"></div>
+                    <div class="h-4 bg-slate-300 rounded mb-2"></div>
+                    <div class="h-4 bg-slate-300 rounded w-3/4 mx-auto"></div>
+                </div>
+                <p class="text-slate-600">Se încarcă datele despre stoc...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden text-center py-12">
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md mx-auto mb-4">
+                    <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.268 15.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <h3 class="text-lg font-bold text-red-800 mb-2">Eroare la încărcarea datelor</h3>
+                    <p class="text-red-600 text-sm mb-4" id="errorMessage">Nu s-au putut încărca informațiile despre stoc din cauza restricțiilor CORS.</p>
+                    <div class="space-y-2 mb-4">
+                        <button onclick="loadStock()" class="block w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            Încearcă din nou
+                        </button>
+                        <button onclick="tryDirectAccess()" class="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Acces Direct (poate necesita permisiuni)
+                        </button>
+                    </div>
+                    <p class="text-xs text-red-500">
+                        Tip: Pentru acces direct, folosiți o extensie CORS sau un server local.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stock Items -->
+            <div id="stockContainer" class="hidden">
+                <div id="stockStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-slate-900" id="totalItems">0</div>
+                        <div class="text-sm text-slate-600">Total produse</div>
+                    </div>
+                    <div class="bg-green-50 rounded-xl border border-green-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-green-700" id="inStockItems">0</div>
+                        <div class="text-sm text-green-600">În stoc</div>
+                    </div>
+                    <div class="bg-yellow-50 rounded-xl border border-yellow-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-700" id="lowStockItems">0</div>
+                        <div class="text-sm text-yellow-600">Stoc limitat</div>
+                    </div>
+                    <div class="bg-red-50 rounded-xl border border-red-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-red-700" id="outOfStockItems">0</div>
+                        <div class="text-sm text-red-600">Fără stoc</div>
+                    </div>
+                </div>
+
+                <div id="stockGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Stock items will be populated here -->
+                </div>
+
+                <!-- No results -->
+                <div id="noResults" class="hidden text-center py-12">
+                    <div class="bg-slate-50 rounded-2xl p-8 max-w-md mx-auto">
+                        <svg class="w-12 h-12 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <h3 class="text-lg font-bold text-slate-700 mb-2">Niciun rezultat</h3>
+                        <p class="text-slate-600 text-sm">Nu s-au găsit produse care să corespundă căutării tale.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-50 border-t border-slate-200">
+        <div class="max-w-[1200px] mx-auto px-4 md:px-6 py-10 md:py-14">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="font-black mb-4">Despre</h3>
+                    <p class="text-sm md:text-base text-slate-600 leading-relaxed">
+                        AutoHuse oferă huse auto premium, personalizate pentru orice model de mașină. 
+                        Calitate superioară și servicii de încredere de peste 3 ani.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-black mb-4">Linkuri</h3>
+                    <div class="space-y-2">
+                        <a href="despre.html" class="block text-sm md:text-base text-slate-600 hover:text-slate-900 transition-colors">Despre Noi</a>
+                        <a href="masini.html" class="block text-sm md:text-base text-slate-600 hover:text-slate-900 transition-colors">Mașini</a>
+                        <a href="lucrari.html" class="block text-sm md:text-base text-slate-600 hover:text-slate-900 transition-colors">Lucrări</a>
+                        <a href="stoc.html" class="block text-sm md:text-base text-slate-600 hover:text-slate-900 transition-colors">Stoc Live</a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-black mb-4">Contact</h3>
+                    <div class="space-y-2">
+                        <div class="text-sm md:text-base text-slate-600">
+                            <strong class="text-slate-800">Telefon:</strong><br>
+                            <a href="tel:+37360607028" class="text-[#F7941E] hover:underline">+373 60607028</a>
+                        </div>
+                        <div class="text-sm md:text-base text-slate-600">
+                            <strong class="text-slate-800">Program:</strong><br>
+                            Luni-Vineri: 16:30-20:30<br>                            Sâmbătă Duminică: 09:00-18:00
+                        </div>
+                        <div class="text-sm md:text-base text-slate-600">
+                            <strong class="text-slate-800">Comenzi:</strong><br>
+                            WhatsApp (comandă automată)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Bottom -->
+        <div class="border-t border-slate-200 py-4">
+            <div class="max-w-[1200px] mx-auto px-4 md:px-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <p class="text-xs md:text-sm text-slate-500">© 2025 Toate drepturile rezervate.</p>
+                        <div class="flex items-center gap-3">
+                            <a href="https://www.instagram.com/autohusemd/" target="_blank" rel="noopener noreferrer" class="w-6 h-6 text-slate-400 hover:text-[#F7941E] transition-colors" aria-label="Instagram">
+                                <svg fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.40z"/>
+                                </svg>
+                            </a>
+                            <a href="https://www.tiktok.com/@autohusemd" target="_blank" rel="noopener noreferrer" class="w-6 h-6 text-slate-400 hover:text-[#F7941E] transition-colors" aria-label="TikTok">
+                                <svg fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Creator Credit -->
+        <div class="border-t border-slate-200 py-3 bg-slate-25">
+            <div class="max-w-[1200px] mx-auto px-4 md:px-6">
+                <div class="text-center">
+                    <a href="https://landings.md/" target="_blank" rel="noopener noreferrer" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                        Creat de landings.md
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Social Media Buttons -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <!-- Instagram Button -->
+        <a href="https://www.instagram.com/autohusemd/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
+           aria-label="Instagram">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+            </svg>
+        </a>
+        
+        <!-- TikTok Button -->
+        <a href="https://www.tiktok.com/@autohusemd" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="w-14 h-14 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
+           aria-label="TikTok">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+            </svg>
+        </a>
+        
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/37360607028?text=Bună%20ziua!%20Am%20nevoie%20de%20ajutor%20cu%20produsele%20AutoHuse." 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="w-14 h-14 bg-[#25d366] hover:bg-[#1da851] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
+           aria-label="WhatsApp">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.488"/>
+            </svg>
+            <div class="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+        </a>
+    </div>
+
+    <script>
+        // Global variables
+        let stockData = [];
+        let filteredData = [];
+        
+        // API configuration
+        const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
+        
+        // Multiple CORS proxies to try
+        const PROXY_URLS = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://cors-anywhere.herokuapp.com/'
+        ];
+
+        // DOM elements
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const stockContainer = document.getElementById('stockContainer');
+        const stockGrid = document.getElementById('stockGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterSelect = document.getElementById('filterSelect');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const noResults = document.getElementById('noResults');
+
+        // Load stock data from API
+        async function loadStock() {
+            showLoading();
+            
+            // Try multiple proxy services
+            for (let i = 0; i < PROXY_URLS.length; i++) {
+                try {
+                    console.log(`Trying proxy ${i + 1}/${PROXY_URLS.length}:`, PROXY_URLS[i]);
+                    
+                    const proxyUrl = PROXY_URLS[i] + encodeURIComponent(API_URL);
+                    
+                    const response = await fetch(proxyUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/xml, text/xml, */*',
+                        },
+                        mode: 'cors'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    let xmlText = await response.text();
+                    console.log('Raw response:', xmlText.substring(0, 500) + '...');
+                    
+                    // Handle JSON wrapped XML from some proxies
+                    if (xmlText.startsWith('{')) {
+                        const jsonResponse = JSON.parse(xmlText);
+                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
+                    }
+                    
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                    
+                    // Check for XML parsing errors
+                    const parserError = xmlDoc.getElementsByTagName("parsererror")[0];
+                    if (parserError) {
+                        throw new Error('XML parsing error: ' + parserError.textContent);
+                    }
+                    
+                    // Parse XML data - look for offers
+                    const offers = xmlDoc.getElementsByTagName('offer');
+                    console.log(`Found ${offers.length} offers`);
+                    
+                    // Debug: log the XML structure
+                    if (offers.length > 0) {
+                        const firstOffer = offers[0];
+                        console.log('First offer XML structure:');
+                        console.log('- Attributes:', Array.from(firstOffer.attributes).map(attr => `${attr.name}="${attr.value}"`));
+                        console.log('- Child elements:', Array.from(firstOffer.children).map(child => child.tagName));
+                        
+                        // Debug product structure (no price info logged)
+                        console.log('- Product structure analyzed');
+                    }
+                    
+                    if (offers.length === 0) {
+                        // Try alternative XML structure
+                        const items = xmlDoc.getElementsByTagName('item') || 
+                                     xmlDoc.getElementsByTagName('product') ||
+                                     xmlDoc.getElementsByTagName('goods');
+                        console.log(`Trying alternative structure, found ${items.length} items`);
+                        
+                        if (items.length === 0) {
+                            throw new Error('No products found in XML');
+                        }
+                    }
+                    
+                    stockData = Array.from(offers).map(offer => {
+                        const getElementText = (tagName) => {
+                            const element = offer.getElementsByTagName(tagName)[0];
+                            return element ? element.textContent.trim() : '';
+                        };
+                        
+                        let name = getElementText('name') || getElementText('title') || 'Produs fără nume';
+                        let vendor = getElementText('vendor') || getElementText('manufacturer') || getElementText('brand');
+                        const available = offer.getAttribute('available') === 'true' || offer.getAttribute('available') === '1';
+                        
+                        // Remove AutoPilot references from name, vendor and other fields
+                        name = name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
+                        if (vendor) {
+                            vendor = vendor.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
+                            // If vendor becomes empty after removing autopilot, set to empty
+                            if (!vendor || vendor.length < 2) {
+                                vendor = '';
+                            }
+                        }
+                        
+                        // Clean model field as well
+                        let model = getElementText('model') || getElementText('typePrefix');
+                        if (model) {
+                            model = model.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
+                        }
+                        
+                        // Translate Russian terms to Romanian
+                        const translations = {
+                            'с': 'din', 
+                            'г.': 'an',
+                            'г.,': 'an,',
+                            'Ромб': 'Romb',
+                            'ромб': 'romb',
+                            'алькантара': 'alcantara',
+                            'Алькантара': 'Alcantara',
+                            'экокожа': 'eco piele',
+                            'Экокожа': 'Eco piele',
+                            'кожа': 'piele',
+                            'Кожа': 'Piele',
+                            'черный': 'negru',
+                            'Черный': 'Negru',
+                            'серый': 'gri',
+                            'Серый': 'Gri',
+                            'коричневый': 'maro',
+                            'Коричневый': 'Maro',
+                            'бежевый': 'bej',
+                            'Бежевый': 'Bej'
+                        };
+                        
+                        // Apply translations to name and model
+                        Object.keys(translations).forEach(russian => {
+                            const romanian = translations[russian];
+                            name = name.replace(new RegExp(russian, 'g'), romanian);
+                            if (model) {
+                                model = model.replace(new RegExp(russian, 'g'), romanian);
+                            }
+                        });
+                        
+                        const product = {
+                            id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
+                            name: name,
+                            category: getElementText('categoryId') || getElementText('category'),
+                            model: model,
+                            description: getElementText('description') || '',
+                            picture: getElementText('picture') || getElementText('image'),
+                            available: available,
+                            quantity: available ? Math.floor(Math.random() * 50) + 1 : 0,
+                            url: getElementText('url') || ''
+                        };
+                        
+                        // Log the first few products to debug
+                        if (stockData.length < 3) {
+                            console.log('Sample product:', product);
+                        }
+                        
+                        return product;
+                    });
+                    
+                    console.log(`Successfully parsed ${stockData.length} products`);
+                    
+                    filteredData = [...stockData];
+                    updateStats();
+                    renderStock();
+                    updateLastUpdateTime();
+                    showStock();
+                    return; // Success, exit the loop
+                    
+                } catch (error) {
+                    console.error(`Proxy ${i + 1} failed:`, error);
+                    
+                    // If this was the last proxy, show error
+                    if (i === PROXY_URLS.length - 1) {
+                        console.error('All proxies failed. Showing error state.');
+                        showError();
+                        return;
+                    }
+                    
+                    // Try next proxy
+                    continue;
+                }
+            }
+        }
+
+        // Try direct access (for local testing or with CORS disabled)
+        async function tryDirectAccess() {
+            showLoading();
+            
+            try {
+                console.log('Trying direct access to:', API_URL);
+                
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    mode: 'no-cors', // This will limit what we can access, but might work in some cases
+                    headers: {
+                        'Accept': 'application/xml, text/xml, */*',
+                    }
+                });
+                
+                // Note: With no-cors mode, we can't read the response in most cases
+                // This is mainly for demonstration
+                alert('Acces direct încercat. Verificați consola browserului pentru detalii.');
+                showError();
+                
+            } catch (error) {
+                console.error('Direct access failed:', error);
+                document.getElementById('errorMessage').textContent = 
+                    'Accesul direct a eșuat. Este nevoie de un proxy CORS sau server local.';
+                showError();
+            }
+        }
+
+        // Show different states
+        function showLoading() {
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            stockContainer.classList.add('hidden');
+        }
+
+        function showError() {
+            loadingState.classList.add('hidden');
+            errorState.classList.remove('hidden');
+            stockContainer.classList.add('hidden');
+        }
+
+        function showStock() {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            stockContainer.classList.remove('hidden');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = filteredData.length;
+            const inStock = filteredData.filter(item => item.available && item.quantity > 5).length;
+            const lowStock = filteredData.filter(item => item.available && item.quantity <= 5 && item.quantity > 0).length;
+            const outOfStock = filteredData.filter(item => !item.available || item.quantity === 0).length;
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('inStockItems').textContent = inStock;
+            document.getElementById('lowStockItems').textContent = lowStock;
+            document.getElementById('outOfStockItems').textContent = outOfStock;
+        }
+
+        // Render stock items
+        function renderStock() {
+            if (filteredData.length === 0) {
+                stockGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            stockGrid.classList.remove('hidden');
+            noResults.classList.add('hidden');
+
+            stockGrid.innerHTML = filteredData.map(item => {
+                const stockStatus = getStockStatus(item);
+                const stockClass = getStockClass(stockStatus);
+                
+                return `
+                    <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}">
+                        ${item.picture ? `
+                            <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
+                                <img src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
+                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        `}
+                        
+                        <div class="mb-3">
+                            <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
+                            ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
+                        </div>
+
+                        <div class="flex items-center justify-end mb-3">
+                            <div class="text-sm ${getStockStatusColor(stockStatus)}">
+                                ${getStockStatusText(stockStatus, item.quantity)}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs text-slate-500">
+                                ID: ${item.id}
+                            </div>
+                            <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
+                                    class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
+                                ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Helper functions for stock status
+        function getStockStatus(item) {
+            if (!item.available || item.quantity === 0) return 'out-of-stock';
+            if (item.quantity <= 5) return 'low-stock';
+            return 'in-stock';
+        }
+
+        function getStockClass(status) {
+            switch (status) {
+                case 'in-stock': return 'in-stock';
+                case 'low-stock': return 'low-stock';
+                case 'out-of-stock': return 'out-of-stock';
+                default: return '';
+            }
+        }
+
+        function getStockStatusColor(status) {
+            switch (status) {
+                case 'in-stock': return 'text-green-600';
+                case 'low-stock': return 'text-yellow-600';
+                case 'out-of-stock': return 'text-red-600';
+                default: return 'text-slate-600';
+            }
+        }
+
+        function getStockStatusText(status, quantity) {
+            switch (status) {
+                case 'in-stock': return `În stoc (${quantity})`;
+                case 'low-stock': return `Stoc limitat (${quantity})`;
+                case 'out-of-stock': return 'Fără stoc';
+                default: return 'Necunoscut';
+            }
+        }
+
+        // Filter functions
+        function filterStock() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filterValue = filterSelect.value;
+
+            filteredData = stockData.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
+                                    (item.model && item.model.toLowerCase().includes(searchTerm)) ||
+                                    item.id.includes(searchTerm);
+
+                const stockStatus = getStockStatus(item);
+                const matchesFilter = filterValue === 'all' || stockStatus === filterValue;
+
+                return matchesSearch && matchesFilter;
+            });
+
+            updateStats();
+            renderStock();
+        }
+
+        // Order item function
+        function orderItem(itemId, itemName) {
+            const message = `Bună ziua! Sunt interessat de produsul: ${itemName} (ID: ${itemId}). Vă rog să-mi oferiți mai multe detalii.`;
+            const whatsappUrl = `https://wa.me/37360607028?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ro-RO');
+            document.getElementById('lastUpdate').textContent = `(${timeString})`;
+        }
+
+        // Refresh functionality
+        function refreshStock() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.style.animation = 'spin 1s linear infinite';
+            
+            setTimeout(() => {
+                refreshIcon.style.animation = '';
+                loadStock();
+            }, 1000);
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterStock);
+        filterSelect.addEventListener('change', filterStock);
+        refreshBtn.addEventListener('click', refreshStock);
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Auto refresh every 5 minutes
+        setInterval(loadStock, 5 * 60 * 1000);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadStock);
+
+        // Add spin animation for refresh icon
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
