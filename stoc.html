@@ -373,11 +373,6 @@
             'https://api.allorigins.win/raw?url='
         ];
         
-        // Lazy loading configuration
-        let currentPage = 0;
-        const itemsPerPage = 20; // Smaller chunks for faster initial load
-        let displayedItems = [];
-        let isRenderingChunks = false;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -620,7 +615,7 @@
             document.getElementById('outOfStockItems').textContent = outOfStock;
         }
 
-        // Render stock items with lazy loading for better performance  
+        // Render stock items - simple approach without glitchy animations
         function renderStock() {
             if (filteredData.length === 0) {
                 stockGrid.classList.add('hidden');
@@ -631,87 +626,54 @@
             stockGrid.classList.remove('hidden');
             noResults.classList.add('hidden');
 
-            // Reset for new data
-            currentPage = 0;
-            displayedItems = [];
-            stockGrid.innerHTML = '';
-            
-            // Load first chunk immediately for fast initial display
-            loadNextChunk();
-        }
-
-        // Load items in chunks for better performance (lazy loading)
-        function loadNextChunk() {
-            if (isRenderingChunks || currentPage * itemsPerPage >= filteredData.length) {
-                return;
-            }
-
-            isRenderingChunks = true;
-            const startIndex = currentPage * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
-            const chunk = filteredData.slice(startIndex, endIndex);
-
-            // Use requestAnimationFrame for smoother rendering
-            requestAnimationFrame(() => {
-                const chunkHTML = chunk.map((item, index) => {
-                    const stockStatus = getStockStatus(item);
-                    const stockClass = getStockClass(stockStatus);
-                    
-                    return `
-                        <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}" style="opacity: 0; animation: fadeInUp 0.3s ease-out forwards; animation-delay: ${index * 50}ms;">
-                            ${item.picture ? `
-                                <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
-                                    <img loading="lazy" src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
-                                        <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                            ` : `
-                                <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+            stockGrid.innerHTML = filteredData.map(item => {
+                const stockStatus = getStockStatus(item);
+                const stockClass = getStockClass(stockStatus);
+                
+                return `
+                    <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}">
+                        ${item.picture ? `
+                            <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
+                                <img loading="lazy" src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
+                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                            `}
-                            
-                            <div class="mb-3">
-                                <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
-                                ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
                             </div>
-
-                            <div class="flex items-center justify-end mb-3">
-                                <div class="text-sm ${getStockStatusColor(stockStatus)}">
-                                    ${getStockStatusText(stockStatus, item.quantity)}
-                                </div>
+                        ` : `
+                            <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                </svg>
                             </div>
+                        `}
+                        
+                        <div class="mb-3">
+                            <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
+                            ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
+                        </div>
 
-                            <div class="flex items-center justify-between">
-                                <div class="text-xs text-slate-500">
-                                    ID: ${item.id}
-                                </div>
-                                <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
-                                        class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
-                                        ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
-                                    ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
-                                </button>
+                        <div class="flex items-center justify-end mb-3">
+                            <div class="text-sm ${getStockStatusColor(stockStatus)}">
+                                ${getStockStatusText(stockStatus, item.quantity)}
                             </div>
                         </div>
-                    `;
-                }).join('');
 
-                stockGrid.innerHTML += chunkHTML;
-                displayedItems.push(...chunk);
-                currentPage++;
-                isRenderingChunks = false;
-
-                // Auto-load next chunk after a small delay for seamless experience
-                if (currentPage * itemsPerPage < filteredData.length) {
-                    setTimeout(() => loadNextChunk(), 150);
-                }
-            });
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs text-slate-500">
+                                ID: ${item.id}
+                            </div>
+                            <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
+                                    class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
+                                ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Helper functions for stock status
