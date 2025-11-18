@@ -133,10 +133,13 @@
                 
                 <!-- Controls -->
                 <div class="flex flex-col gap-4 mb-8 max-w-4xl mx-auto px-2">
-                    <!-- Search and Refresh Row -->
+                    <!-- Search Bar -->
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="searchInput" placeholder="Caută după nume sau cod..." 
-                               class="flex-1 px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base w-full">
+                        <input type="text" id="searchInput" placeholder="Caută după nume, model sau cod..." 
+                               class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
+                        <button id="clearSearchBtn" class="hidden px-4 py-3 bg-slate-500 text-white rounded-lg hover:opacity-90 transition-opacity">
+                            Șterge căutarea
+                        </button>
                         <button id="refreshBtn" class="px-4 py-3 bg-[#F7941E] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 w-full sm:w-auto sm:min-w-[120px]">
                             <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -146,9 +149,13 @@
                         </button>
                     </div>
                     
-                    <!-- Filter Row -->
-                    <div class="w-full">
-                        <select id="filterSelect" class="w-full sm:w-auto sm:min-w-[200px] sm:mx-auto sm:block px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
+                    <!-- Filters Row -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <select id="brandSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
+                            <option value="all">Toate mărcile</option>
+                            <!-- Brand options will be populated dynamically -->
+                        </select>
+                        <select id="filterSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
                             <option value="all">Toate produsele</option>
                             <option value="in-stock">În stoc</option>
                             <option value="low-stock">Stoc limitat</option>
@@ -368,7 +375,9 @@
         const stockContainer = document.getElementById('stockContainer');
         const stockGrid = document.getElementById('stockGrid');
         const searchInput = document.getElementById('searchInput');
+        const brandSelect = document.getElementById('brandSelect');
         const filterSelect = document.getElementById('filterSelect');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
 
@@ -498,15 +507,66 @@
                             }
                         });
                         
+                        // Try to get real stock quantity from XML
+                        let quantity = 0;
+                        const stockElement = offer.getElementsByTagName('stock')[0] || 
+                                           offer.getElementsByTagName('quantity')[0] || 
+                                           offer.getElementsByTagName('count')[0] ||
+                                           offer.getElementsByTagName('amount')[0];
+                        
+                        if (stockElement && stockElement.textContent) {
+                            quantity = parseInt(stockElement.textContent.trim()) || 0;
+                        } else if (available) {
+                            // If no stock data available but item is marked as available, 
+                            // show as available without specific quantity
+                            quantity = -1; // Special value to indicate "available but quantity unknown"
+                        }
+                        
+                        // Extract car brand from product name
+                        function extractBrand(productName) {
+                            const carBrands = [
+                                'Audi', 'BMW', 'Mercedes', 'Mercedes-Benz', 'Volkswagen', 'VW', 'Skoda', 'Škoda',
+                                'Toyota', 'Honda', 'Nissan', 'Mazda', 'Mitsubishi', 'Subaru', 'Lexus', 'Infiniti',
+                                'Ford', 'Opel', 'Renault', 'Peugeot', 'Citroen', 'Citroën', 'Fiat', 'Alfa Romeo',
+                                'Volvo', 'Saab', 'Hyundai', 'Kia', 'Daewoo', 'Chevrolet', 'Dacia', 'Lada',
+                                'Porsche', 'Jaguar', 'Land Rover', 'Range Rover', 'Mini', 'Seat', 'Suzuki',
+                                'Isuzu', 'Jeep', 'Chrysler', 'Dodge', 'Cadillac', 'Buick', 'Lincoln', 'Acura',
+                                'Genesis', 'Tesla', 'Bentley', 'Rolls-Royce', 'Maserati', 'Ferrari', 'Lamborghini'
+                            ];
+                            
+                            const nameUpper = productName.toUpperCase();
+                            
+                            for (const brand of carBrands) {
+                                if (nameUpper.includes(brand.toUpperCase())) {
+                                    return brand;
+                                }
+                            }
+                            
+                            // Try to extract from the beginning of the name
+                            const words = productName.split(/[\s\-,\.]+/);
+                            for (const word of words.slice(0, 3)) {
+                                for (const brand of carBrands) {
+                                    if (word.toUpperCase() === brand.toUpperCase()) {
+                                        return brand;
+                                    }
+                                }
+                            }
+                            
+                            return 'Altele'; // Default category for unrecognized brands
+                        }
+                        
+                        const extractedBrand = extractBrand(name);
+                        
                         const product = {
                             id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
                             name: name,
+                            brand: extractedBrand,
                             category: getElementText('categoryId') || getElementText('category'),
                             model: model,
                             description: getElementText('description') || '',
                             picture: getElementText('picture') || getElementText('image'),
                             available: available,
-                            quantity: available ? Math.floor(Math.random() * 50) + 1 : 0,
+                            quantity: quantity,
                             url: getElementText('url') || ''
                         };
                         
@@ -521,6 +581,7 @@
                     console.log(`Successfully parsed ${stockData.length} products`);
                     
                     filteredData = [...stockData];
+                    populateBrandOptions();
                     updateStats();
                     renderStock();
                     updateLastUpdateTime();
@@ -590,10 +651,25 @@
             stockContainer.classList.remove('hidden');
         }
 
+        // Populate brand options
+        function populateBrandOptions() {
+            const brands = [...new Set(stockData.map(item => item.brand))].sort();
+            
+            // Clear existing options except "Toate mărcile"
+            brandSelect.innerHTML = '<option value="all">Toate mărcile</option>';
+            
+            brands.forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+        }
+
         // Update statistics
         function updateStats() {
             const total = filteredData.length;
-            const inStock = filteredData.filter(item => item.available && item.quantity > 5).length;
+            const inStock = filteredData.filter(item => item.available && (item.quantity > 5 || item.quantity === -1)).length;
             const lowStock = filteredData.filter(item => item.available && item.quantity <= 5 && item.quantity > 0).length;
             const outOfStock = filteredData.filter(item => !item.available || item.quantity === 0).length;
 
@@ -656,7 +732,7 @@
                             <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
                                     class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
                                     ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
-                                ${item.available && item.quantity > 0 ? 'Comandă' : 'Indisponibil'}
+                                ${item.available && (item.quantity > 0 || item.quantity === -1) ? 'Comandă' : 'Indisponibil'}
                             </button>
                         </div>
                     </div>
@@ -667,6 +743,7 @@
         // Helper functions for stock status
         function getStockStatus(item) {
             if (!item.available || item.quantity === 0) return 'out-of-stock';
+            if (item.quantity === -1) return 'in-stock'; // Available but quantity unknown
             if (item.quantity <= 5) return 'low-stock';
             return 'in-stock';
         }
@@ -691,31 +768,53 @@
 
         function getStockStatusText(status, quantity) {
             switch (status) {
-                case 'in-stock': return `În stoc (${quantity})`;
-                case 'low-stock': return `Stoc limitat (${quantity})`;
-                case 'out-of-stock': return 'Fără stoc';
-                default: return 'Necunoscut';
+                case 'in-stock': 
+                    return quantity === -1 ? 'În stoc' : `În stoc (${quantity})`;
+                case 'low-stock': 
+                    return `Stoc limitat (${quantity})`;
+                case 'out-of-stock': 
+                    return 'Fără stoc';
+                default: 
+                    return 'Necunoscut';
             }
         }
 
         // Filter functions
         function filterStock() {
             const searchTerm = searchInput.value.toLowerCase();
+            const brandValue = brandSelect.value;
             const filterValue = filterSelect.value;
 
             filteredData = stockData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
                                     (item.model && item.model.toLowerCase().includes(searchTerm)) ||
+                                    (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
                                     item.id.includes(searchTerm);
+
+                const matchesBrand = brandValue === 'all' || item.brand === brandValue;
 
                 const stockStatus = getStockStatus(item);
                 const matchesFilter = filterValue === 'all' || stockStatus === filterValue;
 
-                return matchesSearch && matchesFilter;
+                return matchesSearch && matchesBrand && matchesFilter;
             });
+
+            // Show/hide clear search button
+            if (searchTerm.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
 
             updateStats();
             renderStock();
+        }
+
+        // Clear search function
+        function clearSearch() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            filterStock();
         }
 
         // Order item function
@@ -745,7 +844,9 @@
 
         // Event listeners
         searchInput.addEventListener('input', filterStock);
+        brandSelect.addEventListener('change', filterStock);
         filterSelect.addEventListener('change', filterStock);
+        clearSearchBtn.addEventListener('click', clearSearch);
         refreshBtn.addEventListener('click', refreshStock);
 
         // Mobile menu toggle
