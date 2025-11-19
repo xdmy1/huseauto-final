@@ -355,6 +355,7 @@
         // Global variables
         let stockData = [];
         let filteredData = [];
+        let catalogData = null;
         let isLoading = false;
         let loadAttempts = 0;
         const maxLoadAttempts = 2; // Limit retry attempts
@@ -381,9 +382,88 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
 
+        // Load catalog data
+        async function loadCatalog() {
+            if (catalogData) return catalogData;
+            
+            try {
+                const response = await fetch('assets/catalog.json');
+                if (!response.ok) {
+                    console.warn('Could not load catalog.json, using default pricing');
+                    return null;
+                }
+                catalogData = await response.json();
+                console.log('Catalog loaded successfully');
+                return catalogData;
+            } catch (error) {
+                console.warn('Error loading catalog:', error);
+                return null;
+            }
+        }
+
+        // Check if brand exists in catalog
+        function isBrandInCatalog(brand) {
+            if (!catalogData || !catalogData.brands) return false;
+            
+            return catalogData.brands.some(b => 
+                b.name.toLowerCase() === brand.toLowerCase()
+            );
+        }
+
+        // Get appropriate product type price from catalog
+        function getProductTypePrice(productName) {
+            if (!catalogData || !catalogData.products) return null;
+            
+            const name = productName.toLowerCase();
+            
+            // Check for romb patterns
+            if (name.includes('romb') || name.includes('ромб')) {
+                // Find romb product price
+                const rombProduct = catalogData.products.find(p => 
+                    p.color && p.color.toLowerCase().includes('romb')
+                );
+                return rombProduct ? rombProduct.price : 4300;
+            }
+            
+            // Check for alcantara
+            if (name.includes('alcantara') || name.includes('алькантара')) {
+                const alcantaraProduct = catalogData.products.find(p => 
+                    p.groupId === 'alcantara' && !p.color.toLowerCase().includes('romb')
+                );
+                return alcantaraProduct ? alcantaraProduct.price : 4200;
+            }
+            
+            // Default to eco piele price
+            const ecoProduct = catalogData.products.find(p => 
+                p.groupId === 'eco' && !p.color.toLowerCase().includes('romb')
+            );
+            return ecoProduct ? ecoProduct.price : 4200;
+        }
+
+        // Check if product exists in catalog (backward compatibility)
+        function isProductInCatalog(productName, brand) {
+            return isBrandInCatalog(brand);
+        }
+
+        // Calculate product price
+        function calculateProductPrice(product) {
+            // Check if brand exists in catalog
+            if (isBrandInCatalog(product.brand)) {
+                // Brand is in catalog, get price based on product type
+                const catalogPrice = getProductTypePrice(product.name);
+                return catalogPrice || 4200;
+            } else {
+                // Brand not in catalog: always 4500
+                return 4500;
+            }
+        }
+
         // Load stock data from API
         async function loadStock() {
             showLoading();
+            
+            // Load catalog first
+            await loadCatalog();
             
             // Try multiple proxy services
             for (let i = 0; i < PROXY_URLS.length; i++) {
@@ -570,6 +650,15 @@
                             url: getElementText('url') || ''
                         };
                         
+                        // Calculate and add price
+                        product.inCatalog = isProductInCatalog(name, extractedBrand);
+                        product.price = calculateProductPrice(product);
+                        
+                        // Debug logging for first few products
+                        if (stockData.length < 5) {
+                            console.log(`Product: ${name} | Brand: ${extractedBrand} | In Catalog: ${product.inCatalog} | Price: ${product.price}`);
+                        }
+                        
                         // Log the first few products to debug
                         if (stockData.length < 3) {
                             console.log('Sample product:', product);
@@ -717,6 +806,13 @@
                         <div class="mb-3">
                             <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
                             ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-2xl font-bold text-[#F7941E] mb-1">${item.price} lei</div>
+                            <div class="text-xs text-slate-500">
+                                ${item.inCatalog ? 'În catalogul nostru' : 'Comandă specială'}
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end mb-3">
