@@ -785,20 +785,37 @@
             });
         }
 
-        // Populate model options
-        function populateModelOptions() {
-            const models = [...new Set(stockData.map(item => item.carModel))].sort();
+        // Populate model options based on selected brand
+        function populateModelOptions(selectedBrand = 'all') {
+            let models;
             
-            // Clear existing options except "Toate modelele"
+            if (selectedBrand === 'all') {
+                // Show all models from all brands
+                models = [...new Set(stockData.map(item => item.carModel))].sort();
+                // Skip first 10 models for all brands
+                models = models.slice(10);
+            } else {
+                // Show only models for the selected brand
+                models = [...new Set(
+                    stockData
+                        .filter(item => item.brand === selectedBrand)
+                        .map(item => item.carModel)
+                )].sort();
+            }
+            
+            // Clear existing options
             modelSelect.innerHTML = '<option value="all">Toate modelele</option>';
             
-            // Skip first 10 models and populate the rest
-            models.slice(10).forEach(model => {
+            // Populate with filtered models
+            models.forEach(model => {
                 const option = document.createElement('option');
                 option.value = model;
                 option.textContent = model;
                 modelSelect.appendChild(option);
             });
+            
+            // Reset model selection
+            modelSelect.value = 'all';
         }
 
         // Update statistics
@@ -921,6 +938,17 @@
             }
         }
 
+        // Handle brand change
+        function handleBrandChange() {
+            const selectedBrand = brandSelect.value;
+            
+            // Update model options based on selected brand
+            populateModelOptions(selectedBrand);
+            
+            // Apply filters
+            filterStock();
+        }
+
         // Filter functions
         function filterStock() {
             const searchTerm = searchInput.value.toLowerCase();
@@ -985,7 +1013,7 @@
 
         // Event listeners
         searchInput.addEventListener('input', filterStock);
-        brandSelect.addEventListener('change', filterStock);
+        brandSelect.addEventListener('change', handleBrandChange);
         modelSelect.addEventListener('change', filterStock);
         clearSearchBtn.addEventListener('click', clearSearch);
         refreshBtn.addEventListener('click', refreshStock);
