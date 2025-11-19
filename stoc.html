@@ -155,11 +155,9 @@
                             <option value="all">Toate mărcile</option>
                             <!-- Brand options will be populated dynamically -->
                         </select>
-                        <select id="filterSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
-                            <option value="all">Toate produsele</option>
-                            <option value="in-stock">În stoc</option>
-                            <option value="low-stock">Stoc limitat</option>
-                            <option value="out-of-stock">Fără stoc</option>
+                        <select id="modelSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
+                            <option value="all">Toate modelele</option>
+                            <!-- Model options will be populated dynamically -->
                         </select>
                     </div>
                 </div>
@@ -377,7 +375,7 @@
         const stockGrid = document.getElementById('stockGrid');
         const searchInput = document.getElementById('searchInput');
         const brandSelect = document.getElementById('brandSelect');
-        const filterSelect = document.getElementById('filterSelect');
+        const modelSelect = document.getElementById('modelSelect');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
@@ -637,10 +635,41 @@
                         
                         const extractedBrand = extractBrand(name);
                         
+                        // Extract car model from product name
+                        function extractCarModel(productName) {
+                            // Remove common words and brand name to isolate model
+                            let modelName = productName
+                                .replace(/автопилот/gi, '')
+                                .replace(/autopilot/gi, '')
+                                .replace(/АВТОПИЛОТ/gi, '')
+                                .replace(/huse/gi, '')
+                                .replace(/husă/gi, '')
+                                .replace(/auto/gi, '')
+                                .replace(/set/gi, '')
+                                .replace(/complet/gi, '')
+                                .trim();
+                            
+                            // Remove brand from the beginning if present
+                            const brands = ['Audi', 'BMW', 'Mercedes', 'Volkswagen', 'Toyota', 'Honda', 'Ford', 'Opel'];
+                            for (const brand of brands) {
+                                const regex = new RegExp(`^${brand}\\s*`, 'gi');
+                                modelName = modelName.replace(regex, '').trim();
+                            }
+                            
+                            // Extract first meaningful part as model
+                            const words = modelName.split(/[\s\-,\.]+/).filter(word => word.length > 1);
+                            
+                            // Take first 2-3 words as model name
+                            return words.slice(0, 3).join(' ').trim() || 'Model necunoscut';
+                        }
+                        
+                        const extractedModel = extractCarModel(name);
+                        
                         const product = {
                             id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
                             name: name,
                             brand: extractedBrand,
+                            carModel: extractedModel,
                             category: getElementText('categoryId') || getElementText('category'),
                             model: model,
                             description: getElementText('description') || '',
@@ -671,6 +700,7 @@
                     
                     filteredData = [...stockData];
                     populateBrandOptions();
+                    populateModelOptions();
                     updateStats();
                     renderStock();
                     updateLastUpdateTime();
@@ -752,6 +782,22 @@
                 option.value = brand;
                 option.textContent = brand;
                 brandSelect.appendChild(option);
+            });
+        }
+
+        // Populate model options
+        function populateModelOptions() {
+            const models = [...new Set(stockData.map(item => item.carModel))].sort();
+            
+            // Clear existing options except "Toate modelele"
+            modelSelect.innerHTML = '<option value="all">Toate modelele</option>';
+            
+            // Skip first 10 models and populate the rest
+            models.slice(10).forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
             });
         }
 
@@ -879,20 +925,19 @@
         function filterStock() {
             const searchTerm = searchInput.value.toLowerCase();
             const brandValue = brandSelect.value;
-            const filterValue = filterSelect.value;
+            const modelValue = modelSelect.value;
 
             filteredData = stockData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
                                     (item.model && item.model.toLowerCase().includes(searchTerm)) ||
                                     (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
+                                    (item.carModel && item.carModel.toLowerCase().includes(searchTerm)) ||
                                     item.id.includes(searchTerm);
 
                 const matchesBrand = brandValue === 'all' || item.brand === brandValue;
+                const matchesModel = modelValue === 'all' || item.carModel === modelValue;
 
-                const stockStatus = getStockStatus(item);
-                const matchesFilter = filterValue === 'all' || stockStatus === filterValue;
-
-                return matchesSearch && matchesBrand && matchesFilter;
+                return matchesSearch && matchesBrand && matchesModel;
             });
 
             // Show/hide clear search button
@@ -941,7 +986,7 @@
         // Event listeners
         searchInput.addEventListener('input', filterStock);
         brandSelect.addEventListener('change', filterStock);
-        filterSelect.addEventListener('change', filterStock);
+        modelSelect.addEventListener('change', filterStock);
         clearSearchBtn.addEventListener('click', clearSearch);
         refreshBtn.addEventListener('click', refreshStock);
 
