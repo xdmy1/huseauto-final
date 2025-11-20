@@ -188,9 +188,6 @@
                         <button onclick="loadStock()" class="block w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                             Încearcă din nou
                         </button>
-                        <button onclick="tryDirectAccess()" class="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Acces Direct (poate necesita permisiuni)
-                        </button>
                     </div>
                     <p class="text-xs text-red-500">
                         Tip: Pentru acces direct, folosiți o extensie CORS sau un server local.
@@ -358,14 +355,15 @@
         let loadAttempts = 0;
         const maxLoadAttempts = 2; // Limit retry attempts
         
-        // API configuration - faster proxy first
+        // Load all products from API - optimized for speed
+        const showAllProducts = true;
+        
+        // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Optimized proxy list - fastest first
-        const PROXY_URLS = [
-            'https://corsproxy.io/?',
-            'https://api.allorigins.win/raw?url='
-        ];
+        // Fastest proxy only
+        const PROXY_URL = 'https://corsproxy.io/?';
+        
         
 
         // DOM elements
@@ -456,306 +454,179 @@
             }
         }
 
-        // Load stock data from API
-        async function loadStock() {
-            showLoading();
-            
-            // Load catalog first
-            await loadCatalog();
-            
-            // Try multiple proxy services
-            for (let i = 0; i < PROXY_URLS.length; i++) {
-                try {
-                    console.log(`Trying proxy ${i + 1}/${PROXY_URLS.length}:`, PROXY_URLS[i]);
-                    
-                    const proxyUrl = PROXY_URLS[i] + encodeURIComponent(API_URL);
-                    
-                    const response = await fetch(proxyUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/xml, text/xml, */*',
-                        },
-                        mode: 'cors'
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    let xmlText = await response.text();
-                    console.log('Raw response:', xmlText.substring(0, 500) + '...');
-                    
-                    // Handle JSON wrapped XML from some proxies
-                    if (xmlText.startsWith('{')) {
-                        const jsonResponse = JSON.parse(xmlText);
-                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
-                    }
-                    
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                    
-                    // Check for XML parsing errors
-                    const parserError = xmlDoc.getElementsByTagName("parsererror")[0];
-                    if (parserError) {
-                        throw new Error('XML parsing error: ' + parserError.textContent);
-                    }
-                    
-                    // Parse XML data - look for offers
-                    const offers = xmlDoc.getElementsByTagName('offer');
-                    console.log(`Found ${offers.length} offers`);
-                    
-                    // Debug: log the XML structure
-                    if (offers.length > 0) {
-                        const firstOffer = offers[0];
-                        console.log('First offer XML structure:');
-                        console.log('- Attributes:', Array.from(firstOffer.attributes).map(attr => `${attr.name}="${attr.value}"`));
-                        console.log('- Child elements:', Array.from(firstOffer.children).map(child => child.tagName));
-                        
-                        // Debug product structure (no price info logged)
-                        console.log('- Product structure analyzed');
-                    }
-                    
-                    if (offers.length === 0) {
-                        // Try alternative XML structure
-                        const items = xmlDoc.getElementsByTagName('item') || 
-                                     xmlDoc.getElementsByTagName('product') ||
-                                     xmlDoc.getElementsByTagName('goods');
-                        console.log(`Trying alternative structure, found ${items.length} items`);
-                        
-                        if (items.length === 0) {
-                            throw new Error('No products found in XML');
-                        }
-                    }
-                    
-                    stockData = Array.from(offers).map(offer => {
-                        const getElementText = (tagName) => {
-                            const element = offer.getElementsByTagName(tagName)[0];
-                            return element ? element.textContent.trim() : '';
-                        };
-                        
-                        let name = getElementText('name') || getElementText('title') || 'Produs fără nume';
-                        let vendor = getElementText('vendor') || getElementText('manufacturer') || getElementText('brand');
-                        const available = offer.getAttribute('available') === 'true' || offer.getAttribute('available') === '1';
-                        
-                        // Remove AutoPilot references from name, vendor and other fields
-                        name = name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
-                        if (vendor) {
-                            vendor = vendor.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
-                            // If vendor becomes empty after removing autopilot, set to empty
-                            if (!vendor || vendor.length < 2) {
-                                vendor = '';
-                            }
-                        }
-                        
-                        // Clean model field as well
-                        let model = getElementText('model') || getElementText('typePrefix');
-                        if (model) {
-                            model = model.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim();
-                        }
-                        
-                        // Translate Russian terms to Romanian
-                        const translations = {
-                            'с': 'din', 
-                            'г.': 'an',
-                            'г.,': 'an,',
-                            'Ромб': 'Romb',
-                            'ромб': 'romb',
-                            'алькантара': 'alcantara',
-                            'Алькантара': 'Alcantara',
-                            'экокожа': 'eco piele',
-                            'Экокожа': 'Eco piele',
-                            'кожа': 'piele',
-                            'Кожа': 'Piele',
-                            'черный': 'negru',
-                            'Черный': 'Negru',
-                            'серый': 'gri',
-                            'Серый': 'Gri',
-                            'коричневый': 'maro',
-                            'Коричневый': 'Maro',
-                            'бежевый': 'bej',
-                            'Бежевый': 'Bej'
-                        };
-                        
-                        // Apply translations to name and model
-                        Object.keys(translations).forEach(russian => {
-                            const romanian = translations[russian];
-                            name = name.replace(new RegExp(russian, 'g'), romanian);
-                            if (model) {
-                                model = model.replace(new RegExp(russian, 'g'), romanian);
-                            }
-                        });
-                        
-                        // Try to get real stock quantity from XML
-                        let quantity = 0;
-                        const stockElement = offer.getElementsByTagName('stock')[0] || 
-                                           offer.getElementsByTagName('quantity')[0] || 
-                                           offer.getElementsByTagName('count')[0] ||
-                                           offer.getElementsByTagName('amount')[0];
-                        
-                        if (stockElement && stockElement.textContent) {
-                            quantity = parseInt(stockElement.textContent.trim()) || 0;
-                        } else if (available) {
-                            // If no stock data available but item is marked as available, 
-                            // show as available without specific quantity
-                            quantity = -1; // Special value to indicate "available but quantity unknown"
-                        }
-                        
-                        // Extract car brand from product name
-                        function extractBrand(productName) {
-                            const carBrands = [
-                                'Audi', 'BMW', 'Mercedes', 'Mercedes-Benz', 'Volkswagen', 'VW', 'Skoda', 'Škoda',
-                                'Toyota', 'Honda', 'Nissan', 'Mazda', 'Mitsubishi', 'Subaru', 'Lexus', 'Infiniti',
-                                'Ford', 'Opel', 'Renault', 'Peugeot', 'Citroen', 'Citroën', 'Fiat', 'Alfa Romeo',
-                                'Volvo', 'Saab', 'Hyundai', 'Kia', 'Daewoo', 'Chevrolet', 'Dacia', 'Lada',
-                                'Porsche', 'Jaguar', 'Land Rover', 'Range Rover', 'Mini', 'Seat', 'Suzuki',
-                                'Isuzu', 'Jeep', 'Chrysler', 'Dodge', 'Cadillac', 'Buick', 'Lincoln', 'Acura',
-                                'Genesis', 'Tesla', 'Bentley', 'Rolls-Royce', 'Maserati', 'Ferrari', 'Lamborghini'
-                            ];
-                            
-                            const nameUpper = productName.toUpperCase();
-                            
-                            for (const brand of carBrands) {
-                                if (nameUpper.includes(brand.toUpperCase())) {
-                                    return brand;
-                                }
-                            }
-                            
-                            // Try to extract from the beginning of the name
-                            const words = productName.split(/[\s\-,\.]+/);
-                            for (const word of words.slice(0, 3)) {
-                                for (const brand of carBrands) {
-                                    if (word.toUpperCase() === brand.toUpperCase()) {
-                                        return brand;
-                                    }
-                                }
-                            }
-                            
-                            return 'Altele'; // Default category for unrecognized brands
-                        }
-                        
-                        const extractedBrand = extractBrand(name);
-                        
-                        // Extract car model from product name
-                        function extractCarModel(productName) {
-                            // Remove common words and brand name to isolate model
-                            let modelName = productName
-                                .replace(/автопилот/gi, '')
-                                .replace(/autopilot/gi, '')
-                                .replace(/АВТОПИЛОТ/gi, '')
-                                .replace(/huse/gi, '')
-                                .replace(/husă/gi, '')
-                                .replace(/auto/gi, '')
-                                .replace(/set/gi, '')
-                                .replace(/complet/gi, '')
-                                .trim();
-                            
-                            // Remove brand from the beginning if present
-                            const brands = ['Audi', 'BMW', 'Mercedes', 'Volkswagen', 'Toyota', 'Honda', 'Ford', 'Opel'];
-                            for (const brand of brands) {
-                                const regex = new RegExp(`^${brand}\\s*`, 'gi');
-                                modelName = modelName.replace(regex, '').trim();
-                            }
-                            
-                            // Extract first meaningful part as model
-                            const words = modelName.split(/[\s\-,\.]+/).filter(word => word.length > 1);
-                            
-                            // Take first 2-3 words as model name
-                            return words.slice(0, 3).join(' ').trim() || 'Model necunoscut';
-                        }
-                        
-                        const extractedModel = extractCarModel(name);
-                        
-                        const product = {
-                            id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
-                            name: name,
-                            brand: extractedBrand,
-                            carModel: extractedModel,
-                            category: getElementText('categoryId') || getElementText('category'),
-                            model: model,
-                            description: getElementText('description') || '',
-                            picture: getElementText('picture') || getElementText('image'),
-                            available: available,
-                            quantity: quantity,
-                            url: getElementText('url') || ''
-                        };
-                        
-                        // Calculate and add price
-                        product.inCatalog = isProductInCatalog(name, extractedBrand);
-                        product.price = calculateProductPrice(product);
-                        
-                        // Debug logging for first few products
-                        if (stockData.length < 5) {
-                            console.log(`Product: ${name} | Brand: ${extractedBrand} | In Catalog: ${product.inCatalog} | Price: ${product.price}`);
-                        }
-                        
-                        // Log the first few products to debug
-                        if (stockData.length < 3) {
-                            console.log('Sample product:', product);
-                        }
-                        
-                        return product;
-                    });
-                    
-                    console.log(`Successfully parsed ${stockData.length} products`);
-                    
-                    filteredData = [...stockData];
-                    populateBrandOptions();
-                    populateModelOptions();
-                    updateStats();
-                    renderStock();
-                    updateLastUpdateTime();
-                    showStock();
-                    return; // Success, exit the loop
-                    
-                } catch (error) {
-                    console.error(`Proxy ${i + 1} failed:`, error);
-                    
-                    // If this was the last proxy, show error
-                    if (i === PROXY_URLS.length - 1) {
-                        console.error('All proxies failed. Showing error state.');
-                        showError();
-                        return;
-                    }
-                    
-                    // Try next proxy
-                    continue;
-                }
-            }
-        }
 
-        // Try direct access (for local testing or with CORS disabled)
-        async function tryDirectAccess() {
-            showLoading();
+        // Load stock data from API - optimized for all products
+        async function loadStock() {
+            showLoading('Se conectează la API...');
             
             try {
-                console.log('Trying direct access to:', API_URL);
+                const proxyUrl = PROXY_URL + encodeURIComponent(API_URL);
                 
-                const response = await fetch(API_URL, {
+                const response = await fetch(proxyUrl, {
                     method: 'GET',
-                    mode: 'no-cors', // This will limit what we can access, but might work in some cases
-                    headers: {
-                        'Accept': 'application/xml, text/xml, */*',
-                    }
+                    headers: { 'Accept': 'application/xml, text/xml, */*' },
+                    mode: 'cors'
                 });
                 
-                // Note: With no-cors mode, we can't read the response in most cases
-                // This is mainly for demonstration
-                alert('Acces direct încercat. Verificați consola browserului pentru detalii.');
-                showError();
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                showLoading('Se procesează datele...');
+                let xmlText = await response.text();
+                
+                // Handle JSON wrapped XML
+                if (xmlText.startsWith('{')) {
+                    const jsonResponse = JSON.parse(xmlText);
+                    xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
+                }
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                
+                const offers = xmlDoc.getElementsByTagName('offer');
+                console.log(`Found ${offers.length} offers - loading ALL products`);
+                
+                showLoading(`Se încarcă toate produsele (${offers.length})...`);
+                
+                // Process ALL offers quickly
+                stockData = Array.from(offers).map(offer => processOfferFast(offer));
+                
+                console.log(`Successfully loaded ${stockData.length} products with images`);
+                
+                filteredData = [...stockData];
+                populateBrandOptions();
+                populateModelOptions();
+                updateStats();
+                renderStock();
+                updateLastUpdateTime();
+                showStock();
                 
             } catch (error) {
-                console.error('Direct access failed:', error);
-                document.getElementById('errorMessage').textContent = 
-                    'Accesul direct a eșuat. Este nevoie de un proxy CORS sau server local.';
+                console.error('API loading failed:', error);
                 showError();
             }
         }
 
+        // Fast processing of API offers
+        function processOfferFast(offer) {
+            const getElementText = (tagName) => {
+                const element = offer.getElementsByTagName(tagName)[0];
+                return element ? element.textContent.trim() : '';
+            };
+            
+            let name = getElementText('name') || getElementText('title') || 'Produs fără nume';
+            const available = offer.getAttribute('available') === 'true' || offer.getAttribute('available') === '1';
+            const picture = getElementText('picture') || getElementText('image');
+            
+            // Complete translation and cleanup
+            const translations = {
+                // Remove AutoPilot references
+                'автопилот': '', 'autopilot': '', 'АВТОПИЛОТ': '',
+                // Common terms
+                'с': 'din', 'г.': 'an', 'г.,': 'an,',
+                // Materials
+                'Ромб': 'Romb', 'ромб': 'romb',
+                'алькантара': 'alcantara', 'Алькантара': 'Alcantara',
+                'экокожа': 'eco piele', 'Экокожа': 'Eco piele',
+                'кожа': 'piele', 'Кожа': 'Piele',
+                // Colors
+                'черный': 'negru', 'Черный': 'Negru',
+                'серый': 'gri', 'Серый': 'Gri',
+                'коричневый': 'maro', 'Коричневый': 'Maro',
+                'бежевый': 'bej', 'Бежевый': 'Bej',
+                // Car terms
+                'рестайлинг': 'facelift', 'Рестайлинг': 'Facelift',
+                'РЕСТАЙЛИНГ': 'FACELIFT', 'рест.': 'facelift',
+                'Туксон': 'Tucson', 'Транзит': 'Transit',
+                'до': 'până la', 'после': 'după',
+                // Brands in Russian
+                'Ауди': 'Audi', 'БМВ': 'BMW', 'Мерседес': 'Mercedes',
+                'Фольксваген': 'Volkswagen', 'Тойота': 'Toyota',
+                'Хонда': 'Honda', 'Форд': 'Ford', 'Опель': 'Opel',
+                'Хендай': 'Hyundai', 'Киа': 'Kia', 'Дачия': 'Dacia',
+                // Models in Russian
+                'Поло': 'Polo', 'Гольф': 'Golf', 'Пассат': 'Passat',
+                'Камри': 'Camry', 'Фокус': 'Focus', 'Астра': 'Astra'
+            };
+            
+            // Apply all translations
+            Object.keys(translations).forEach(russian => {
+                const romanian = translations[russian];
+                name = name.replace(new RegExp(russian, 'g'), romanian);
+            });
+            
+            // Clean up formatting
+            name = name
+                .replace(/\s+/g, ' ') // Multiple spaces
+                .replace(/\(\s*$/, '') // Dangling open parenthesis
+                .replace(/^\s*\)/, '') // Dangling close parenthesis  
+                .replace(/\s*,\s*$/, '') // Trailing comma
+                .replace(/([A-Za-z0-9]+)\s+\1/gi, '$1') // Remove duplicates
+                .trim();
+            
+            // Fast brand/model extraction
+            const extractBrand = (productName) => {
+                const name = productName.toLowerCase();
+                if (name.includes('audi')) return 'Audi';
+                if (name.includes('bmw')) return 'BMW';
+                if (name.includes('mercedes')) return 'Mercedes';
+                if (name.includes('volkswagen') || name.includes('vw')) return 'Volkswagen';
+                if (name.includes('toyota')) return 'Toyota';
+                if (name.includes('honda')) return 'Honda';
+                if (name.includes('ford')) return 'Ford';
+                if (name.includes('opel')) return 'Opel';
+                if (name.includes('hyundai')) return 'Hyundai';
+                if (name.includes('kia')) return 'Kia';
+                if (name.includes('dacia')) return 'Dacia';
+                if (name.includes('renault')) return 'Renault';
+                return 'Altele';
+            };
+            
+            const extractModel = (productName) => {
+                const words = productName.split(/[\s\-,\.]+/).filter(word => word.length > 1);
+                return words.slice(1, 4).join(' ').trim() || 'Model necunoscut';
+            };
+            
+            const extractedBrand = extractBrand(name);
+            const extractedModel = extractModel(name);
+            
+            // Get quantity
+            let quantity = 0;
+            const stockElement = offer.getElementsByTagName('stock')[0] || offer.getElementsByTagName('quantity')[0];
+            if (stockElement && stockElement.textContent) {
+                quantity = parseInt(stockElement.textContent.trim()) || 0;
+            } else if (available) {
+                quantity = -1; // Available but quantity unknown
+            }
+            
+            const product = {
+                id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
+                name: name,
+                brand: extractedBrand,
+                carModel: extractedModel,
+                available: available,
+                quantity: quantity,
+                picture: picture, // Keep original image URL
+                inCatalog: isBrandInCatalog(extractedBrand)
+            };
+            
+            product.price = calculateProductPrice(product);
+            return product;
+        }
+
+
         // Show different states
-        function showLoading() {
+        function showLoading(message = 'Se încarcă datele despre stoc...') {
             loadingState.classList.remove('hidden');
             errorState.classList.add('hidden');
             stockContainer.classList.add('hidden');
+            
+            // Update loading message
+            const loadingText = loadingState.querySelector('p');
+            if (loadingText) {
+                loadingText.textContent = message;
+            }
         }
 
         function showError() {
@@ -831,7 +702,7 @@
             document.getElementById('outOfStockItems').textContent = outOfStock;
         }
 
-        // Render stock items - simple approach without glitchy animations
+        // Render all products at once
         function renderStock() {
             if (filteredData.length === 0) {
                 stockGrid.classList.add('hidden');
@@ -842,61 +713,108 @@
             stockGrid.classList.remove('hidden');
             noResults.classList.add('hidden');
 
-            stockGrid.innerHTML = filteredData.map(item => {
+            // Clear grid immediately
+            stockGrid.innerHTML = '';
+
+            // Render all products
+            renderAllAtOnce(filteredData);
+        }
+
+        function renderAllAtOnce(items) {
+            const fragment = document.createDocumentFragment();
+
+            items.forEach(item => {
                 const stockStatus = getStockStatus(item);
                 const stockClass = getStockClass(stockStatus);
                 
-                return `
-                    <div class="stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}">
-                        ${item.picture ? `
-                            <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100">
-                                <img loading="lazy" src="${item.picture}" alt="${item.name}" class="w-full h-full object-cover" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="w-full h-full flex items-center justify-center text-slate-400" style="display:none;">
-                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
-                                <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        `}
-                        
-                        <div class="mb-3">
-                            <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name.replace(/автопилот/gi, '').replace(/autopilot/gi, '').replace(/АВТОПИЛОТ/gi, '').trim()}</h3>
-                            ${item.model && !item.model.toLowerCase().includes('autopilot') && !item.model.toLowerCase().includes('автопилот') && !item.model.toLowerCase().includes('автопилот') ? `<p class="text-sm text-slate-600">Model: ${item.model}</p>` : ''}
-                        </div>
+                const itemElement = document.createElement('div');
+                itemElement.className = `stock-item bg-white rounded-xl border border-slate-200 p-6 ${stockClass}`;
+                itemElement.innerHTML = createItemHTML(item, stockStatus);
+                
+                fragment.appendChild(itemElement);
+            });
 
-                        <div class="mb-3">
-                            <div class="text-2xl font-bold text-[#F7941E] mb-1">${item.price} lei</div>
-                            <div class="text-xs text-slate-500">
-                                ${item.inCatalog ? 'În catalogul nostru' : 'Comandă specială'}
-                            </div>
-                        </div>
+            stockGrid.appendChild(fragment);
+        }
 
-                        <div class="flex items-center justify-end mb-3">
-                            <div class="text-sm ${getStockStatusColor(stockStatus)}">
-                                ${getStockStatusText(stockStatus, item.quantity)}
-                            </div>
-                        </div>
 
-                        <div class="flex items-center justify-between">
-                            <div class="text-xs text-slate-500">
-                                ID: ${item.id}
-                            </div>
-                            <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
-                                    class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
-                                    ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
-                                ${item.available && (item.quantity > 0 || item.quantity === -1) ? 'Comandă' : 'Indisponibil'}
-                            </button>
+        // Create HTML for single item with robust image loading
+        function createItemHTML(item, stockStatus) {
+            // Clean up image URL and add error handling
+            let imageUrl = '';
+            if (item.picture && item.picture.trim()) {
+                imageUrl = item.picture.trim();
+                // Ensure proper protocol
+                if (imageUrl.startsWith('//')) {
+                    imageUrl = 'https:' + imageUrl;
+                } else if (imageUrl.startsWith('/')) {
+                    imageUrl = 'https://avtopilot-base.ru' + imageUrl;
+                }
+                
+                // Add proxy for CORS issues with images
+                if (!imageUrl.includes('corsproxy')) {
+                    imageUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
+                }
+            }
+            
+            return `
+                ${imageUrl ? `
+                    <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100 relative">
+                        <img loading="lazy" 
+                             src="${imageUrl}" 
+                             alt="${item.name}" 
+                             class="w-full h-full object-cover transition-opacity duration-300" 
+                             onload="this.style.opacity='1'; this.nextElementSibling.style.display='none';" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='none'; this.nextElementSibling.nextElementSibling.style.display='flex';"
+                             style="opacity:0;">
+                        <!-- Loading spinner -->
+                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100">
+                            <div class="animate-pulse w-full h-full bg-slate-200 rounded"></div>
+                        </div>
+                        <!-- Error fallback -->
+                        <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100" style="display:none;">
+                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                            </svg>
                         </div>
                     </div>
-                `;
-            }).join('');
+                ` : `
+                    <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                `}
+                
+                <div class="mb-3">
+                    <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name}</h3>
+                    <p class="text-sm text-slate-600">Model: ${item.carModel}</p>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-2xl font-bold text-[#F7941E] mb-1">${item.price} lei</div>
+                    <div class="text-xs text-slate-500">
+                        ${item.inCatalog ? 'În catalogul nostru' : 'Comandă specială'}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end mb-3">
+                    <div class="text-sm ${getStockStatusColor(stockStatus)}">
+                        ${getStockStatusText(stockStatus, item.quantity)}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="text-xs text-slate-500">
+                        ID: ${item.id}
+                    </div>
+                    <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
+                            class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                            ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
+                        ${item.available && (item.quantity > 0 || item.quantity === -1) ? 'Comandă' : 'Indisponibil'}
+                    </button>
+                </div>
+            `;
         }
 
         // Helper functions for stock status
@@ -938,6 +856,7 @@
             }
         }
 
+
         // Handle brand change
         function handleBrandChange() {
             const selectedBrand = brandSelect.value;
@@ -957,7 +876,6 @@
 
             filteredData = stockData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
-                                    (item.model && item.model.toLowerCase().includes(searchTerm)) ||
                                     (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
                                     (item.carModel && item.carModel.toLowerCase().includes(searchTerm)) ||
                                     item.id.includes(searchTerm);
@@ -1024,8 +942,8 @@
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Auto refresh every 5 minutes
-        setInterval(loadStock, 5 * 60 * 1000);
+        // Auto refresh every hour for mock data
+        setInterval(loadStock, 60 * 60 * 1000);
 
         // Initial load
         document.addEventListener('DOMContentLoaded', loadStock);
