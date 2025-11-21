@@ -960,7 +960,7 @@
                     <div class="text-xs text-slate-500">
                         ID: ${item.id}
                     </div>
-                    <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}')" 
+                    <button onclick="orderItem('${item.id}', '${item.name.replace(/'/g, "\\'")}', '${item.picture || ''}')" 
                             class="px-4 py-2 bg-[#F7941E] text-white text-sm rounded-lg hover:opacity-90 transition-opacity ${!item.available || item.quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
                             ${!item.available || item.quantity === 0 ? 'disabled' : ''}>
                         ${item.available && (item.quantity > 0 || item.quantity === -1) ? 'Comandă' : 'Indisponibil'}
@@ -1057,8 +1057,17 @@
         }
 
         // Order item function
-        function orderItem(itemId, itemName) {
-            const message = `Bună ziua! Sunt interessat de produsul: ${itemName} (ID: ${itemId}). Vă rog să-mi oferiți mai multe detalii.`;
+        function orderItem(itemId, itemName, imageUrl = null) {
+            let message = `Bună ziua! Sunt interessat de produsul: ${itemName} (ID: ${itemId}). Vă rog să-mi oferiți mai multe detalii.`;
+            
+            // Add image URL if available
+            if (imageUrl) {
+                message += `
+
+📷 Poza produsului:
+${imageUrl}`;
+            }
+            
             const whatsappUrl = `https://wa.me/37360607028?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
         }

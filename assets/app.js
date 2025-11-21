@@ -360,7 +360,17 @@ function saveOrder(order) {
 
 function openWhatsApp(order) {
     const message = buildMessage(order);
-    const encodedMessage = encodeURIComponent(message);
+    
+    // Add image URL if available
+    let finalMessage = message;
+    if (order.imageUrl) {
+        finalMessage = `${message}
+
+📷 Poza produsului:
+${order.imageUrl}`;
+    }
+    
+    const encodedMessage = encodeURIComponent(finalMessage);
     const url = `https://wa.me/37360607028?text=${encodedMessage}`;
     window.open(url, '_blank');
 }
@@ -855,7 +865,8 @@ function buildModalOrderObject() {
         productCode: window.__selectedProduct.code,
         color: window.__selectedProduct.color,
         price: getAdjustedPrice(window.__selectedProduct, getSelected().model),
-        phone: phone
+        phone: phone,
+        imageUrl: window.__selectedProduct.image || null
     };
 }
 
@@ -906,7 +917,7 @@ async function sendOrderEmail(order) {
         formData.append('from_name', 'AutoHuse Order System');
         
         // Create order message
-        const message = `
+        let message = `
 COMANDĂ NOUĂ:
 
 📱 Telefon: ${order.phone}
@@ -919,11 +930,22 @@ COMANDĂ NOUĂ:
 - Nume: ${order.productTitle}
 - Cod: ${order.productCode}
 - Culoare: ${order.color}
-- Preț: ${order.price} MDL
+- Preț: ${order.price} MDL`;
+
+        // Add image URL if available
+        if (order.imageUrl) {
+            message += `
+
+📷 Poza produsului:
+${order.imageUrl}`;
+        }
+
+        message += `
 
 ---
-Comandă trimisă de pe AutoHuse.md
-        `.trim();
+Comandă trimisă de pe AutoHuse.md`;
+        
+        message = message.trim();
         
         formData.append('message', message);
         formData.append('phone', order.phone);
@@ -932,6 +954,9 @@ Comandă trimisă de pe AutoHuse.md
         formData.append('product', `${order.productTitle} - ${order.productCode}`);
         formData.append('color', order.color);
         formData.append('price', `${order.price} MDL`);
+        if (order.imageUrl) {
+            formData.append('image_url', order.imageUrl);
+        }
         
         const response = await fetch('https://api.web3forms.com/submit', {
             method: 'POST',
