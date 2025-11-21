@@ -459,6 +459,9 @@
         async function loadStock() {
             showLoading('Se conectează la API...');
             
+            // Load catalog first
+            await loadCatalog();
+            
             try {
                 const proxyUrl = PROXY_URL + encodeURIComponent(API_URL);
                 
@@ -522,32 +525,94 @@
             // Complete translation and cleanup
             const translations = {
                 // Remove AutoPilot references
-                'автопилот': '', 'autopilot': '', 'АВТОПИЛОТ': '',
-                // Common terms
-                'с': 'din', 'г.': 'an', 'г.,': 'an,',
+                'автопилот': '', 'autopilot': '', 'АВТОПИЛОТ': '', 'Автопилот': '',
+                
+                // Common terms and prepositions
+                'с': 'din', 'г.': 'an', 'г.,': 'an,', 'г ': 'an ', 
+                'до': 'până la', 'после': 'după', 'для': 'pentru',
+                'від': 'de la', 'до': 'până la', 'з': 'cu',
+                
+                // Car body types and parts
+                'хэтчбек': 'hatchback', 'Хэтчбек': 'Hatchback', 'хб': 'hb', 'Хб': 'Hb',
+                'хетчбэк': 'hatchback', 'Хетчбэк': 'Hatchback',
+                'седан': 'sedan', 'Седан': 'Sedan',
+                'универсал': 'combi', 'Универсал': 'Combi',
+                'купе': 'coupe', 'Купе': 'Coupe',
+                'кабрио': 'cabrio', 'Кабрио': 'Cabrio',
+                'минивэн': 'monovolum', 'Минивэн': 'Monovolum',
+                'внедорожник': 'SUV', 'Внедорожник': 'SUV',
+                
+                // Door and seat descriptions
+                'дв.': 'uși', 'дв ': 'uși ', 'двери': 'uși', 'дверей': 'uși',
+                '5-ти': '5', '3-х': '3', '4-х': '4', '2-х': '2',
+                'местный': 'locuri', 'местная': 'locuri',
+                'местные': 'locuri', 'места': 'locuri',
+                
+                // Facelift terms
+                'рестайлинг': 'facelift', 'Рестайлинг': 'Facelift',
+                'РЕСТАЙЛИНГ': 'FACELIFT', 'рест.': 'facelift', 'рест ': 'facelift ',
+                'реди тайлинг': 'facelift', 'реdinтайлинan': 'facelift',
+                'редитайлинг': 'facelift', 'Редитайлинг': 'Facelift',
+                
                 // Materials
                 'Ромб': 'Romb', 'ромб': 'romb',
                 'алькантара': 'alcantara', 'Алькантара': 'Alcantara',
                 'экокожа': 'eco piele', 'Экокожа': 'Eco piele',
                 'кожа': 'piele', 'Кожа': 'Piele',
+                'велюр': 'velur', 'Велюр': 'Velur',
+                'жаккард': 'jacquard', 'Жаккард': 'Jacquard',
+                
                 // Colors
-                'черный': 'negru', 'Черный': 'Negru',
+                'черный': 'negru', 'Черный': 'Negru', 'чёрный': 'negru',
                 'серый': 'gri', 'Серый': 'Gri',
                 'коричневый': 'maro', 'Коричневый': 'Maro',
                 'бежевый': 'bej', 'Бежевый': 'Bej',
-                // Car terms
-                'рестайлинг': 'facelift', 'Рестайлинг': 'Facelift',
-                'РЕСТАЙЛИНГ': 'FACELIFT', 'рест.': 'facelift',
-                'Туксон': 'Tucson', 'Транзит': 'Transit',
-                'до': 'până la', 'после': 'după',
-                // Brands in Russian
+                'белый': 'alb', 'Белый': 'Alb',
+                'красный': 'roșu', 'Красный': 'Roșu',
+                'синий': 'albastru', 'Синий': 'Albastru',
+                'зеленый': 'verde', 'Зеленый': 'Verde',
+                'желтый': 'galben', 'Желтый': 'Galben',
+                'оранжевый': 'portocaliu', 'Оранжевый': 'Portocaliu',
+                
+                // Brands in Russian/Cyrillic
                 'Ауди': 'Audi', 'БМВ': 'BMW', 'Мерседес': 'Mercedes',
                 'Фольксваген': 'Volkswagen', 'Тойота': 'Toyota',
                 'Хонда': 'Honda', 'Форд': 'Ford', 'Опель': 'Opel',
                 'Хендай': 'Hyundai', 'Киа': 'Kia', 'Дачия': 'Dacia',
+                'Рено': 'Renault', 'Пежо': 'Peugeot', 'Ситроен': 'Citroen',
+                'Фиат': 'Fiat', 'Альфа Ромео': 'Alfa Romeo',
+                'Мазда': 'Mazda', 'Мицубиси': 'Mitsubishi',
+                'Нисан': 'Nissan', 'Субару': 'Subaru', 'Сузуки': 'Suzuki',
+                'Вольво': 'Volvo', 'Шкода': 'Skoda', 'Сеат': 'SEAT',
+                
                 // Models in Russian
                 'Поло': 'Polo', 'Гольф': 'Golf', 'Пассат': 'Passat',
-                'Камри': 'Camry', 'Фокус': 'Focus', 'Астра': 'Astra'
+                'Камри': 'Camry', 'Фокус': 'Focus', 'Астра': 'Astra',
+                'Туксон': 'Tucson', 'Транзит': 'Transit', 'Кадди': 'Caddy',
+                'Шаран': 'Sharan', 'Туран': 'Touran', 'Тигуан': 'Tiguan',
+                'Октавия': 'Octavia', 'Фабия': 'Fabia', 'Суперб': 'Superb',
+                'Кордоба': 'Cordoba', 'Леон': 'Leon', 'Толедо': 'Toledo',
+                'Лагуна': 'Laguna', 'Меган': 'Megane', 'Сценик': 'Scenic',
+                'Кангу': 'Kangoo', 'Клио': 'Clio', 'Твинго': 'Twingo',
+                
+                // Other car-related terms
+                'модель': 'model', 'Модель': 'Model',
+                'поколение': 'generația', 'Поколение': 'Generația',
+                'кузов': 'caroserie', 'Кузов': 'Caroserie',
+                'двигатель': 'motor', 'Двигатель': 'Motor',
+                'коробка': 'cutie', 'Коробка': 'Cutie',
+                'привод': 'tracțiune', 'Привод': 'Tracțiune',
+                
+                // Broken/corrupted text patterns
+                'анрбы': '', 'дінтайлинан': 'facelift', 'реdinтайлинan': 'facelift',
+                'Nexia': 'Nexia', '(anрбы)': '', 'Нексия': 'Nexia',
+                
+                // Remove broken parentheses and formatting
+                '\\\\': '', '\\/': '/', '\\': '',
+                'Hb': 'Hatchback', 'hb': 'hatchback',
+                'Е87': 'E87', 'Е': 'E', // Fix Cyrillic E
+                '5-ти дв.': '5 uși', '3-х дв.': '3 uși',
+                '(până la': '(până la', 'din\\': 'din'
             };
             
             // Apply all translations
@@ -556,30 +621,117 @@
                 name = name.replace(new RegExp(russian, 'g'), romanian);
             });
             
-            // Clean up formatting
+            // Advanced cleanup and formatting
             name = name
+                // Fix broken line breaks and slashes
+                .replace(/\\\s*\n/g, ' ') // Remove backslash line breaks
+                .replace(/\\\s/g, ' ') // Remove random backslashes
+                .replace(/\/\s*\n/g, ' ') // Remove slash line breaks
+                
+                // Fix corrupted text patterns
+                .replace(/\([^)]*anрбы[^)]*)?\)/gi, '') // Remove corrupted (anрбы) patterns
+                .replace(/\([^)]*дінтайлинан[^)]*)?\)/gi, '(facelift)') // Fix facelift patterns
+                .replace(/реdinтайлинan/gi, 'facelift')
+                .replace(/\([^)]*реdinтайлинan[^)]*)?\)/gi, '(facelift)')
+                
+                // Clean up mixed characters and encoding issues
+                .replace(/[а-яёА-ЯЁ]/g, (match) => {
+                    // Handle remaining Cyrillic characters
+                    const cyrillicMap = {
+                        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+                        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+                        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '',
+                        'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+                        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
+                        'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+                        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
+                        'Ф': 'F', 'Х': 'H', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch', 'Ъ': '',
+                        'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+                    };
+                    return cyrillicMap[match] || match;
+                })
+                
+                // Standard cleanup
                 .replace(/\s+/g, ' ') // Multiple spaces
                 .replace(/\(\s*$/, '') // Dangling open parenthesis
                 .replace(/^\s*\)/, '') // Dangling close parenthesis  
                 .replace(/\s*,\s*$/, '') // Trailing comma
-                .replace(/([A-Za-z0-9]+)\s+\1/gi, '$1') // Remove duplicates
-                .trim();
+                .replace(/\s*\\\s*$/, '') // Trailing backslash
+                .replace(/\s*\/\s*$/, '') // Trailing slash
+                .replace(/\s*\|\s*$/, '') // Trailing pipe
+                
+                // Fix broken parentheses
+                .replace(/\(\s*până la\s*\)/, '(până la facelift)')
+                .replace(/\(\s*din\s*\)/, '')
+                .replace(/\(\s*Model:\s*\)/, '')
+                .replace(/\s*\(\s*\)\s*/g, ' ') // Empty parentheses
+                
+                // Remove duplicates and clean up
+                .replace(/([A-Za-z0-9]+)\s+\1/gi, '$1') // Remove word duplicates
+                .replace(/\s*(hatchback|Hatchback)\s*(hb|Hb)\s*/gi, ' Hatchback ') // Fix hatchback duplicates
+                .replace(/\s*din\s*din\s*/gi, ' din ') // Fix "din din" duplicates
+                
+                // Final cleanup
+                .trim()
+                .replace(/^[,\s-]+/, '') // Remove leading punctuation
+                .replace(/[,\s-]+$/, ''); // Remove trailing punctuation
             
             // Fast brand/model extraction
             const extractBrand = (productName) => {
                 const name = productName.toLowerCase();
+                
+                // Check all catalog brands first
                 if (name.includes('audi')) return 'Audi';
                 if (name.includes('bmw')) return 'BMW';
-                if (name.includes('mercedes')) return 'Mercedes';
-                if (name.includes('volkswagen') || name.includes('vw')) return 'Volkswagen';
-                if (name.includes('toyota')) return 'Toyota';
-                if (name.includes('honda')) return 'Honda';
+                if (name.includes('chery')) return 'Chery';
+                if (name.includes('chevrolet')) return 'Chevrolet';
+                if (name.includes('citroën') || name.includes('citroen')) return 'Citroën';
+                if (name.includes('dodge')) return 'Dodge';
+                if (name.includes('fiat')) return 'Fiat';
                 if (name.includes('ford')) return 'Ford';
-                if (name.includes('opel')) return 'Opel';
+                if (name.includes('geely')) return 'Geely';
+                if (name.includes('haval')) return 'Haval';
+                if (name.includes('honda')) return 'Honda';
                 if (name.includes('hyundai')) return 'Hyundai';
                 if (name.includes('kia')) return 'Kia';
-                if (name.includes('dacia')) return 'Dacia';
+                if (name.includes('land rover') || name.includes('landrover')) return 'Land Rover';
+                if (name.includes('mazda')) return 'Mazda';
+                if (name.includes('mercedes')) return 'Mercedes-Benz';
+                if (name.includes('mitsubishi')) return 'Mitsubishi';
+                if (name.includes('nissan')) return 'Nissan';
+                if (name.includes('opel')) return 'Opel';
+                if (name.includes('peugeot')) return 'Peugeot';
                 if (name.includes('renault')) return 'Renault';
+                if (name.includes('seat')) return 'SEAT';
+                if (name.includes('subaru')) return 'Subaru';
+                if (name.includes('suzuki')) return 'Suzuki';
+                if (name.includes('škoda') || name.includes('skoda')) return 'Škoda';
+                if (name.includes('tesla')) return 'Tesla';
+                if (name.includes('toyota')) return 'Toyota';
+                if (name.includes('volkswagen') || name.includes('vw')) return 'Volkswagen';
+                if (name.includes('volvo')) return 'Volvo';
+                
+                // Additional popular brands not in catalog
+                if (name.includes('dacia')) return 'Dacia';
+                if (name.includes('lada')) return 'Lada';
+                if (name.includes('jaguar')) return 'Jaguar';
+                if (name.includes('porsche')) return 'Porsche';
+                if (name.includes('lexus')) return 'Lexus';
+                if (name.includes('acura')) return 'Acura';
+                if (name.includes('infiniti')) return 'Infiniti';
+                if (name.includes('lincoln')) return 'Lincoln';
+                if (name.includes('cadillac')) return 'Cadillac';
+                if (name.includes('buick')) return 'Buick';
+                if (name.includes('chrysler')) return 'Chrysler';
+                if (name.includes('jeep')) return 'Jeep';
+                if (name.includes('mini')) return 'MINI';
+                if (name.includes('smart')) return 'Smart';
+                if (name.includes('saab')) return 'Saab';
+                if (name.includes('isuzu')) return 'Isuzu';
+                if (name.includes('gmc')) return 'GMC';
+                if (name.includes('hummer')) return 'Hummer';
+                
                 return 'Altele';
             };
             
