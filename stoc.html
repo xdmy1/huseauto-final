@@ -183,7 +183,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.268 15.5c-.77.833.192 2.5 1.732 2.5z"/>
                     </svg>
                     <h3 class="text-lg font-bold text-red-800 mb-2">Eroare la încărcarea datelor</h3>
-                    <p class="text-red-600 text-sm mb-4" id="errorMessage">Nu s-au putut încărca informațiile despre stoc din cauza restricțiilor CORS.</p>
+                    <p class="text-red-600 text-sm mb-4" id="errorMessage">Nu s-au putut încărca informațiile despre stoc. Toate serverele proxy sunt indisponibile momentan.</p>
                     <div class="space-y-2 mb-4">
                         <button onclick="loadStock()" class="block w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                             Încearcă din nou
@@ -361,7 +361,7 @@
         // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Fastest proxy only
+        // Use original working proxy
         const PROXY_URL = 'https://corsproxy.io/?';
         
         
@@ -458,9 +458,6 @@
         // Load stock data from API - optimized for all products
         async function loadStock() {
             showLoading('Se conectează la API...');
-            
-            // Load catalog first
-            await loadCatalog();
             
             try {
                 const proxyUrl = PROXY_URL + encodeURIComponent(API_URL);
@@ -628,29 +625,10 @@
                 .replace(/\\\s/g, ' ') // Remove random backslashes
                 .replace(/\/\s*\n/g, ' ') // Remove slash line breaks
                 
-                // Fix corrupted text patterns
-                .replace(/\([^)]*anрбы[^)]*)?\)/gi, '') // Remove corrupted (anрбы) patterns
-                .replace(/\([^)]*дінтайлинан[^)]*)?\)/gi, '(facelift)') // Fix facelift patterns
+                // Fix corrupted text patterns (simplified)
+                .replace(/anрбы/gi, '')
+                .replace(/дінтайлинан/gi, 'facelift')
                 .replace(/реdinтайлинan/gi, 'facelift')
-                .replace(/\([^)]*реdinтайлинan[^)]*)?\)/gi, '(facelift)')
-                
-                // Clean up mixed characters and encoding issues
-                .replace(/[а-яёА-ЯЁ]/g, (match) => {
-                    // Handle remaining Cyrillic characters
-                    const cyrillicMap = {
-                        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-                        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-                        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-                        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '',
-                        'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-                        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
-                        'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
-                        'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
-                        'Ф': 'F', 'Х': 'H', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch', 'Ъ': '',
-                        'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
-                    };
-                    return cyrillicMap[match] || match;
-                })
                 
                 // Standard cleanup
                 .replace(/\s+/g, ' ') // Multiple spaces
@@ -1058,17 +1036,14 @@
 
         // Order item function
         function orderItem(itemId, itemName, imageUrl = null) {
-            let message = `Bună ziua! Sunt interessat de produsul: ${itemName} (ID: ${itemId}). Vă rog să-mi oferiți mai multe detalii.`;
+            let message = 'Bună ziua! Sunt interessat de produsul: ' + itemName + ' (ID: ' + itemId + '). Vă rog să-mi oferiți mai multe detalii.';
             
             // Add image URL if available
             if (imageUrl) {
-                message += `
-
-📷 Poza produsului:
-${imageUrl}`;
+                message += '\n\n📷 Poza produsului:\n' + imageUrl;
             }
             
-            const whatsappUrl = `https://wa.me/37360607028?text=${encodeURIComponent(message)}`;
+            const whatsappUrl = 'https://wa.me/37360607028?text=' + encodeURIComponent(message);
             window.open(whatsappUrl, '_blank');
         }
 
