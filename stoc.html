@@ -361,8 +361,14 @@
         // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Use AllOrigins proxy  
-        const PROXY_URL = 'https://api.allorigins.win/raw?url=';
+        // Multiple proxy fallbacks
+        const PROXY_URLS = [
+            'https://corsproxy.io/?',
+            'https://cors.sh/',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://proxy.cors.sh/',
+            'https://api.allorigins.win/raw?url='
+        ];
         
         
 
@@ -459,8 +465,11 @@
         async function loadStock() {
             showLoading('Se conectează la API...');
             
+            // Load catalog first for pricing
+            await loadCatalog();
+            
             try {
-                const proxyUrl = PROXY_URL + encodeURIComponent(API_URL);
+                const proxyUrl = PROXY_URLS[0] + (PROXY_URLS[0].includes('?') ? encodeURIComponent(API_URL) : API_URL);
                 
                 const response = await fetch(proxyUrl, {
                     method: 'GET',
@@ -605,11 +614,10 @@
                 'Nexia': 'Nexia', '(anрбы)': '', 'Нексия': 'Nexia',
                 
                 // Remove broken parentheses and formatting
-                '\\\\': '', '\\/': '/', '\\': '',
+                '\\\\': '', '\\/': '/',
                 'Hb': 'Hatchback', 'hb': 'hatchback',
                 'Е87': 'E87', 'Е': 'E', // Fix Cyrillic E
                 '5-ти дв.': '5 uși', '3-х дв.': '3 uși',
-                '(până la': '(până la', 'din\\': 'din'
             };
             
             // Apply all translations
@@ -1037,11 +1045,6 @@
         // Order item function
         function orderItem(itemId, itemName, imageUrl = null) {
             let message = 'Bună ziua! Sunt interessat de produsul: ' + itemName + ' (ID: ' + itemId + '). Vă rog să-mi oferiți mai multe detalii.';
-            
-            // Add image URL if available
-            if (imageUrl) {
-                message += '\n\n📷 Poza produsului:\n' + imageUrl;
-            }
             
             const whatsappUrl = 'https://wa.me/37360607028?text=' + encodeURIComponent(message);
             window.open(whatsappUrl, '_blank');

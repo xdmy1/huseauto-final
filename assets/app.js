@@ -360,17 +360,7 @@ function saveOrder(order) {
 
 function openWhatsApp(order) {
     const message = buildMessage(order);
-    
-    // Add image URL if available
-    let finalMessage = message;
-    if (order.imageUrl) {
-        finalMessage = `${message}
-
-📷 Poza produsului:
-${order.imageUrl}`;
-    }
-    
-    const encodedMessage = encodeURIComponent(finalMessage);
+    const encodedMessage = encodeURIComponent(message);
     const url = `https://wa.me/37360607028?text=${encodedMessage}`;
     window.open(url, '_blank');
 }
