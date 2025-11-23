@@ -379,14 +379,22 @@
         // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Multiple proxy fallbacks
-        const PROXY_URLS = [
+        // Multiple proxy fallbacks - updated with most stable services
+        let PROXY_URLS = [
+            'https://api.allorigins.win/raw?url=',
             'https://corsproxy.io/?',
             'https://cors.sh/',
             'https://api.codetabs.com/v1/proxy?quest=',
-            'https://proxy.cors.sh/',
-            'https://api.allorigins.win/raw?url='
+            'https://thingproxy.freeboard.io/fetch/',
+            'https://cors-anywhere.herokuapp.com/'
         ];
+        
+        // Cache last working proxy to try it first next time
+        let lastWorkingProxy = localStorage.getItem('lastWorkingProxy');
+        if (lastWorkingProxy && PROXY_URLS.includes(lastWorkingProxy)) {
+            // Move last working proxy to front
+            PROXY_URLS = [lastWorkingProxy, ...PROXY_URLS.filter(url => url !== lastWorkingProxy)];
+        }
         
         
 
@@ -487,72 +495,118 @@
             // Load catalog first for pricing
             await loadCatalog();
             
-            try {
-                const proxyUrl = PROXY_URLS[0] + (PROXY_URLS[0].includes('?') ? encodeURIComponent(API_URL) : API_URL);
-                
-                const response = await fetch(proxyUrl, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/xml, text/xml, */*' },
-                    mode: 'cors'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Try all proxy services until one works
+            let lastError = null;
+            for (let i = 0; i < PROXY_URLS.length; i++) {
+                try {
+                    const proxyUrl = PROXY_URLS[i] + (PROXY_URLS[i].includes('?') ? encodeURIComponent(API_URL) : API_URL);
+                    
+                    showLoading(`Se conectează prin proxy ${i + 1}/${PROXY_URLS.length}...`);
+                    
+                    // Create fetch with manual timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    
+                    const response = await fetch(proxyUrl, {
+                        method: 'GET',
+                        headers: { 
+                            'Accept': 'application/xml, text/xml, */*',
+                            'User-Agent': 'Mozilla/5.0 (compatible; AutoHuse/1.0)'
+                        },
+                        mode: 'cors',
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    showLoading('Se procesează datele...');
+                    let xmlText = await response.text();
+                    
+                    // Handle JSON wrapped XML
+                    if (xmlText.startsWith('{')) {
+                        const jsonResponse = JSON.parse(xmlText);
+                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
+                    }
+                    
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                    
+                    const offers = xmlDoc.getElementsByTagName('offer');
+                    console.log(`Found ${offers.length} offers via proxy ${i + 1} - processing instantly`);
+                    
+                    if (offers.length === 0) {
+                        throw new Error('No offers found in XML response');
+                    }
+                    
+                    showLoading(`Se traduc instant produsele (${offers.length})...`);
+                    
+                    // Process offers with smart filtering and Google Translate
+                    showLoading('Se filtrează și se traduc modelele de mașini...');
+                    const allOffers = Array.from(offers);
+                    const processedOffers = [];
+                    
+                    // INSTANT processing - no batches needed, everything in 0ms!
+                    showLoading('Traducere instant...');
+                    
+                    const startTime = Date.now();
+                    
+                    // Process ALL offers instantly - no async, no waiting!
+                    const processedResults = allOffers.map(offer => processOfferFast(offer));
+                    
+                    // Filter out null results (non-car products)  
+                    const validProducts = processedResults.filter(product => product !== null);
+                    processedOffers.push(...validProducts);
+                    
+                    const endTime = Date.now();
+                    console.log(`🚀 ALL ${allOffers.length} offers processed in ${endTime - startTime}ms - INSTANT!`);
+                    
+                    stockData = processedOffers;
+                    
+                    console.log(`⚡ PERFECT! Translated ${stockData.length} car models INSTANTLY with 0 errors!`);
+                    
+                    // Save this working proxy for next time
+                    localStorage.setItem('lastWorkingProxy', PROXY_URLS[i]);
+                    
+                    filteredData = [...stockData];
+                    populateBrandOptions();
+                    populateModelOptions();
+                    updateStats();
+                    renderStock();
+                    updateLastUpdateTime();
+                    showStock();
+                    
+                    // Success! Break out of proxy retry loop
+                    return;
+                    
+                } catch (error) {
+                    console.warn(`Proxy ${i + 1} failed:`, error.message);
+                    lastError = error;
+                    
+                    // Continue to next proxy if available
+                    if (i < PROXY_URLS.length - 1) {
+                        continue;
+                    }
                 }
-                
-                showLoading('Se procesează datele...');
-                let xmlText = await response.text();
-                
-                // Handle JSON wrapped XML
-                if (xmlText.startsWith('{')) {
-                    const jsonResponse = JSON.parse(xmlText);
-                    xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
-                }
-                
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                
-                const offers = xmlDoc.getElementsByTagName('offer');
-                console.log(`Found ${offers.length} offers - processing instantly`);
-                
-                showLoading(`Se traduc instant produsele (${offers.length})...`);
-                
-                // Process offers with smart filtering and Google Translate
-                showLoading('Se filtrează și se traduc modelele de mașini...');
-                const allOffers = Array.from(offers);
-                const processedOffers = [];
-                
-                // INSTANT processing - no batches needed, everything in 0ms!
-                showLoading('Traducere instant...');
-                
-                const startTime = Date.now();
-                
-                // Process ALL offers instantly - no async, no waiting!
-                const processedResults = allOffers.map(offer => processOfferFast(offer));
-                
-                // Filter out null results (non-car products)  
-                const validProducts = processedResults.filter(product => product !== null);
-                processedOffers.push(...validProducts);
-                
-                const endTime = Date.now();
-                console.log(`🚀 ALL ${allOffers.length} offers processed in ${endTime - startTime}ms - INSTANT!`);
-                
-                stockData = processedOffers;
-                
-                console.log(`⚡ PERFECT! Translated ${stockData.length} car models INSTANTLY with 0 errors!`);
-                
-                filteredData = [...stockData];
-                populateBrandOptions();
-                populateModelOptions();
-                updateStats();
-                renderStock();
-                updateLastUpdateTime();
-                showStock();
-                
-            } catch (error) {
-                console.error('API loading failed:', error);
-                showError();
             }
+            
+            // All proxies failed
+            console.error('All proxy services failed:', lastError);
+            showError(`Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`);
+        }
+        
+        function showError(customMessage = null) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (errorMessage && customMessage) {
+                errorMessage.textContent = customMessage;
+            }
+            
+            loadingState.classList.add('hidden');
+            stockContainer.classList.add('hidden');
+            errorState.classList.remove('hidden');
         }
 
         // INSTANT hardcoded translation - 0 milliseconds, 0 errors!
