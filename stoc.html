@@ -216,8 +216,26 @@
                     </div>
                 </div>
 
+                <!-- Display info -->
+                <div class="flex justify-between items-center mb-4">
+                    <div id="displayInfo" class="text-sm text-slate-600">
+                        Încărcare...
+                    </div>
+                    <div class="text-sm text-slate-500">
+                        Scroll pentru mai multe produse
+                    </div>
+                </div>
+
                 <div id="stockGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Stock items will be populated here -->
+                </div>
+
+                <!-- Lazy loading indicator -->
+                <div id="lazyLoadingIndicator" class="hidden text-center py-8">
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-[#F7941E]"></div>
+                        <span class="text-slate-600">Se încarcă mai multe produse...</span>
+                    </div>
                 </div>
 
                 <!-- No results -->
@@ -383,6 +401,7 @@
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
+        const lazyLoadingIndicator = document.getElementById('lazyLoadingIndicator');
 
         // Load catalog data
         async function loadCatalog() {
@@ -1020,10 +1039,49 @@
             renderAllAtOnce(filteredData);
         }
 
+        // Lazy loading variables
+        let currentlyDisplayedItems = [];
+        let allFilteredItems = [];
+        let isLazyLoading = false;
+        const ITEMS_PER_BATCH = 500;
+        let currentBatch = 0;
+
         function renderAllAtOnce(items) {
+            // Store all items for lazy loading
+            allFilteredItems = [...items];
+            currentBatch = 0;
+            currentlyDisplayedItems = [];
+            
+            // Render first batch
+            renderNextBatch();
+            
+            // Setup infinite scroll
+            setupInfiniteScroll();
+        }
+
+        function renderNextBatch() {
+            if (isLazyLoading) return;
+            
+            isLazyLoading = true;
+            
+            // Show loading indicator for subsequent batches (not first batch)
+            if (currentBatch > 0) {
+                lazyLoadingIndicator.classList.remove('hidden');
+            }
+            
+            const startIndex = currentBatch * ITEMS_PER_BATCH;
+            const endIndex = Math.min(startIndex + ITEMS_PER_BATCH, allFilteredItems.length);
+            const batchItems = allFilteredItems.slice(startIndex, endIndex);
+            
+            if (batchItems.length === 0) {
+                isLazyLoading = false;
+                lazyLoadingIndicator.classList.add('hidden');
+                return;
+            }
+
             const fragment = document.createDocumentFragment();
 
-            items.forEach(item => {
+            batchItems.forEach(item => {
                 const stockStatus = getStockStatus(item);
                 const stockClass = getStockClass(stockStatus);
                 
@@ -1032,9 +1090,58 @@
                 itemElement.innerHTML = createItemHTML(item, stockStatus);
                 
                 fragment.appendChild(itemElement);
+                currentlyDisplayedItems.push(item);
             });
 
             stockGrid.appendChild(fragment);
+            currentBatch++;
+            isLazyLoading = false;
+            
+            // Hide loading indicator
+            lazyLoadingIndicator.classList.add('hidden');
+            
+            // Update display info
+            updateDisplayInfo();
+        }
+
+        function setupInfiniteScroll() {
+            // Remove existing scroll listener
+            window.removeEventListener('scroll', scrollHandler);
+            // Add new scroll listener
+            window.addEventListener('scroll', scrollHandler);
+        }
+
+        function scrollHandler() {
+            if (isLazyLoading) return;
+            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            // Load more when user is 1000px from bottom
+            if (scrollTop + windowHeight >= documentHeight - 1000) {
+                if (currentlyDisplayedItems.length < allFilteredItems.length) {
+                    renderNextBatch();
+                }
+            }
+        }
+
+        function updateDisplayInfo() {
+            const displayInfo = document.getElementById('displayInfo');
+            const scrollHint = document.querySelector('.text-sm.text-slate-500');
+            
+            if (displayInfo) {
+                displayInfo.textContent = `Afișate: ${currentlyDisplayedItems.length} din ${allFilteredItems.length} produse`;
+            }
+            
+            // Hide scroll hint when all items are loaded
+            if (scrollHint) {
+                if (currentlyDisplayedItems.length >= allFilteredItems.length) {
+                    scrollHint.style.display = 'none';
+                } else {
+                    scrollHint.style.display = 'block';
+                }
+            }
         }
 
 
