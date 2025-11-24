@@ -149,17 +149,6 @@
                         </button>
                     </div>
                     
-                    <!-- Filters Row -->
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <select id="brandSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base">
-                            <option value="all">Toate mărcile</option>
-                            <!-- Brand options will be populated dynamically -->
-                        </select>
-                        <select id="modelSelect" class="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F7941E] focus:border-transparent text-base" style="max-width: 400px; min-width: 200px;">
-                            <option value="all">Toate modelele</option>
-                            <!-- Model options will be populated dynamically -->
-                        </select>
-                    </div>
                 </div>
             </div>
         </section>
@@ -404,8 +393,6 @@
         const stockContainer = document.getElementById('stockContainer');
         const stockGrid = document.getElementById('stockGrid');
         const searchInput = document.getElementById('searchInput');
-        const brandSelect = document.getElementById('brandSelect');
-        const modelSelect = document.getElementById('modelSelect');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
@@ -572,8 +559,6 @@
                     localStorage.setItem('lastWorkingProxy', PROXY_URLS[i]);
                     
                     filteredData = [...stockData];
-                    populateBrandOptions();
-                    populateModelOptions();
                     updateStats();
                     renderStock();
                     updateLastUpdateTime();
@@ -1014,53 +999,6 @@
             stockContainer.classList.remove('hidden');
         }
 
-        // Populate brand options
-        function populateBrandOptions() {
-            const brands = [...new Set(stockData.map(item => item.brand))].sort();
-            
-            // Clear existing options except "Toate mărcile"
-            brandSelect.innerHTML = '<option value="all">Toate mărcile</option>';
-            
-            brands.forEach(brand => {
-                const option = document.createElement('option');
-                option.value = brand;
-                option.textContent = brand;
-                brandSelect.appendChild(option);
-            });
-        }
-
-        // Populate model options based on selected brand
-        function populateModelOptions(selectedBrand = 'all') {
-            let models;
-            
-            if (selectedBrand === 'all') {
-                // Show all models from all brands - use full translated names!
-                models = [...new Set(stockData.map(item => item.name))].sort();
-                // Skip first 50 models - they are garbage!
-                models = models.slice(50);
-            } else {
-                // Show only models for the selected brand - use full translated names!
-                models = [...new Set(
-                    stockData
-                        .filter(item => item.brand === selectedBrand)
-                        .map(item => item.name)
-                )].sort();
-            }
-            
-            // Clear existing options
-            modelSelect.innerHTML = '<option value="all">Toate modelele</option>';
-            
-            // Populate with filtered models
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelSelect.appendChild(option);
-            });
-            
-            // Reset model selection
-            modelSelect.value = 'all';
-        }
 
         // Update statistics
         function updateStats() {
@@ -1318,22 +1256,10 @@
         }
 
 
-        // Handle brand change
-        function handleBrandChange() {
-            const selectedBrand = brandSelect.value;
-            
-            // Update model options based on selected brand
-            populateModelOptions(selectedBrand);
-            
-            // Apply filters
-            filterStock();
-        }
 
         // Filter functions
         function filterStock() {
             const searchTerm = searchInput.value.toLowerCase();
-            const brandValue = brandSelect.value;
-            const modelValue = modelSelect.value;
 
             filteredData = stockData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
@@ -1341,10 +1267,7 @@
                                     (item.carModel && item.carModel.toLowerCase().includes(searchTerm)) ||
                                     item.id.includes(searchTerm);
 
-                const matchesBrand = brandValue === 'all' || item.brand === brandValue;
-                const matchesModel = modelValue === 'all' || item.carModel === modelValue;
-
-                return matchesSearch && matchesBrand && matchesModel;
+                return matchesSearch;
             });
 
             // Show/hide clear search button
@@ -1393,8 +1316,6 @@
 
         // Event listeners
         searchInput.addEventListener('input', filterStock);
-        brandSelect.addEventListener('change', handleBrandChange);
-        modelSelect.addEventListener('change', filterStock);
         clearSearchBtn.addEventListener('click', clearSearch);
         refreshBtn.addEventListener('click', refreshStock);
 
