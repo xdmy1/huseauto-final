@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Stock API</title>
+</head>
+<body>
+    <h1>Test Stock API Loading</h1>
+    <div id="status">Loading...</div>
+    <div id="results"></div>
+
+    <script>
+        // Test API directly
+        const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
+        const PROXY_URLS = [
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://thingproxy.freeboard.io/fetch/',
+            '' // Direct call
+        ];
+
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            console.log('🚀 Starting API test...');
+            statusDiv.innerHTML = '🚀 Starting API test...';
+            
+            for (let i = 0; i < PROXY_URLS.length; i++) {
+                const proxyUrl = PROXY_URLS[i];
+                const fullUrl = proxyUrl ? proxyUrl + encodeURIComponent(API_URL) : API_URL;
+                
+                console.log(`Testing proxy ${i + 1}/${PROXY_URLS.length}: ${proxyUrl || 'Direct'}`);
+                statusDiv.innerHTML = `Testing proxy ${i + 1}/${PROXY_URLS.length}: ${proxyUrl || 'Direct'}`;
+                
+                try {
+                    const response = await fetch(fullUrl, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/xml, text/xml, */*' },
+                        mode: 'cors'
+                    });
+                    
+                    console.log(`Response status: ${response.status} ${response.statusText}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    let xmlText = await response.text();
+                    console.log(`Response length: ${xmlText.length} characters`);
+                    console.log(`Response starts with: ${xmlText.substring(0, 100)}`);
+                    
+                    // Handle JSON wrapped XML
+                    if (xmlText.startsWith('{')) {
+                        const jsonResponse = JSON.parse(xmlText);
+                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
+                        console.log('Unwrapped JSON response');
+                    }
+                    
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                    
+                    const offers = xmlDoc.getElementsByTagName('offer');
+                    console.log(`Found ${offers.length} offers`);
+                    
+                    if (offers.length === 0) {
+                        throw new Error('No products found in response');
+                    }
+                    
+                    statusDiv.innerHTML = `✅ SUCCESS with proxy ${i + 1}: Found ${offers.length} products`;
+                    resultsDiv.innerHTML = `<h2>Success!</h2><p>Proxy: ${proxyUrl || 'Direct'}</p><p>Products found: ${offers.length}</p><pre>${xmlText.substring(0, 500)}...</pre>`;
+                    
+                    return; // Success
+                    
+                } catch (error) {
+                    console.error(`❌ Proxy ${i + 1} failed:`, error);
+                    
+                    if (i === PROXY_URLS.length - 1) {
+                        statusDiv.innerHTML = '❌ ALL PROXIES FAILED';
+                        resultsDiv.innerHTML = `<h2>All Failed!</h2><p>Last error: ${error.message}</p>`;
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Start test when page loads
+        document.addEventListener('DOMContentLoaded', testAPI);
+    </script>
+</body>
+</html>

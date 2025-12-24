@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Lazy Loading Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Lazy Loading Performance Test</h1>
+        
+        <div class="bg-white rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Performance Metrics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded">
+                    <div class="text-sm text-blue-600">Initial Load Time</div>
+                    <div id="initialLoadTime" class="text-2xl font-bold text-blue-800">-</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded">
+                    <div class="text-sm text-green-600">Items Rendered</div>
+                    <div id="itemsRendered" class="text-2xl font-bold text-green-800">0</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded">
+                    <div class="text-sm text-purple-600">Memory Usage</div>
+                    <div id="memoryUsage" class="text-2xl font-bold text-purple-800">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-6">
+            <button id="testBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Test Stock Page Performance
+            </button>
+            <div class="mt-4">
+                <div class="text-sm text-slate-600">This will test the lazy loading performance by opening the stock page in a new window.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testBtn').addEventListener('click', function() {
+            const startTime = performance.now();
+            
+            // Open stock page
+            const stockWindow = window.open('stoc.html', '_blank');
+            
+            // Monitor performance
+            stockWindow.addEventListener('load', function() {
+                const loadTime = performance.now() - startTime;
+                document.getElementById('initialLoadTime').textContent = loadTime.toFixed(0) + 'ms';
+                
+                // Check memory usage if available
+                if (performance.memory) {
+                    const memoryMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+                    document.getElementById('memoryUsage').textContent = memoryMB + 'MB';
+                }
+                
+                // Monitor items rendered
+                setTimeout(() => {
+                    const stockGrid = stockWindow.document.getElementById('stockGrid');
+                    if (stockGrid) {
+                        const items = stockGrid.querySelectorAll('.stock-item').length;
+                        document.getElementById('itemsRendered').textContent = items;
+                    }
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
