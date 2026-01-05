@@ -109,6 +109,7 @@
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span class="text-sm text-slate-600">Actualizat în timp real</span>
                     <span id="lastUpdate" class="text-xs text-slate-500"></span>
+                    <span id="mobileIndicator" class="text-xs text-blue-500 hidden md:hidden">📱</span>
                 </div>
                 
                 <!-- Important Notices -->
@@ -369,14 +370,12 @@
         // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Multiple proxy fallbacks - updated with most stable services
+        // Mobile-optimized proxy fallbacks - most reliable services first
         let PROXY_URLS = [
             'https://api.allorigins.win/raw?url=',
-            'https://corsproxy.io/?',
-            'https://cors.sh/',
             'https://api.codetabs.com/v1/proxy?quest=',
-            'https://thingproxy.freeboard.io/fetch/',
-            'https://cors-anywhere.herokuapp.com/'
+            'https://corsproxy.io/?',
+            'https://cors.sh/'
         ];
         
         // Cache last working proxy to try it first next time
@@ -476,9 +475,12 @@
         }
 
 
-        // Load stock data from API with super fast local translation
+        // Load stock data from API with mobile optimization
         async function loadStock() {
-            showLoading('Se conectează la API...');
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            showLoading(isMobile ? 'Se conectează (mobile)...' : 'Se conectează la API...');
             
             // Load catalog first for pricing
             await loadCatalog();
@@ -489,21 +491,33 @@
                 try {
                     const proxyUrl = PROXY_URLS[i] + (PROXY_URLS[i].includes('?') ? encodeURIComponent(API_URL) : API_URL);
                     
-                    showLoading(`Se conectează prin proxy ${i + 1}/${PROXY_URLS.length}...`);
+                    const loadingMsg = isMobile ? 
+                        `Proxy ${i + 1}/${PROXY_URLS.length} (mobile)...` : 
+                        `Se conectează prin proxy ${i + 1}/${PROXY_URLS.length}...`;
+                    showLoading(loadingMsg);
                     
-                    // Create fetch with manual timeout
+                    // Create fetch with mobile-optimized timeout
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                    const timeout = isMobile ? 8000 : 15000; // Shorter timeout for mobile
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
                     
-                    const response = await fetch(proxyUrl, {
+                    const fetchOptions = {
                         method: 'GET',
                         headers: { 
                             'Accept': 'application/xml, text/xml, */*',
-                            'User-Agent': 'Mozilla/5.0 (compatible; AutoHuse/1.0)'
+                            'User-Agent': isMobile ? 'Mozilla/5.0 (Mobile; AutoHuse/1.0)' : 'Mozilla/5.0 (compatible; AutoHuse/1.0)'
                         },
                         mode: 'cors',
                         signal: controller.signal
-                    });
+                    };
+                    
+                    // Add mobile-specific headers for better compatibility
+                    if (isMobile) {
+                        fetchOptions.headers['Cache-Control'] = 'no-cache';
+                        fetchOptions.headers['Connection'] = 'keep-alive';
+                    }
+                    
+                    const response = await fetch(proxyUrl, fetchOptions);
                     
                     clearTimeout(timeoutId);
                     
@@ -572,6 +586,12 @@
                     console.warn(`Proxy ${i + 1} failed:`, error.message);
                     lastError = error;
                     
+                    // Add small delay between retries on mobile
+                    if (isMobile && i < PROXY_URLS.length - 1) {
+                        showLoading(`Reîncearcă în 2 secunde...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                    
                     // Continue to next proxy if available
                     if (i < PROXY_URLS.length - 1) {
                         continue;
@@ -581,7 +601,10 @@
             
             // All proxies failed
             console.error('All proxy services failed:', lastError);
-            showError(`Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`);
+            const errorMsg = isMobile ? 
+                `Conexiune eșuată pe mobil. Încercați să reîmprospătați pagina sau să folosiți o conexiune WiFi mai stabilă.` :
+                `Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`;
+            showError(errorMsg);
         }
         
         function showError(customMessage = null) {
@@ -1341,7 +1364,15 @@
         setInterval(loadStock, 60 * 60 * 1000);
 
         // Initial load
-        document.addEventListener('DOMContentLoaded', loadStock);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show mobile indicator if on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                document.getElementById('mobileIndicator').classList.remove('hidden');
+            }
+            
+            loadStock();
+        });
 
         // Add spin animation for refresh icon
         const style = document.createElement('style');
