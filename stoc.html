@@ -378,6 +378,13 @@
             'https://cors.sh/'
         ];
         
+        // Mobile fallback: try direct API first, then proxies, then static data
+        const MOBILE_PROXY_URLS = [
+            null, // Try direct first for mobile
+            'https://api.allorigins.win/raw?url=',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
+        
         // Cache last working proxy to try it first next time
         let lastWorkingProxy = localStorage.getItem('lastWorkingProxy');
         if (lastWorkingProxy && PROXY_URLS.includes(lastWorkingProxy)) {
@@ -485,15 +492,21 @@
             // Load catalog first for pricing
             await loadCatalog();
             
+            // Use different proxy lists for mobile vs desktop
+            const urlsToTry = isMobile ? MOBILE_PROXY_URLS : PROXY_URLS;
+            
             // Try all proxy services until one works
             let lastError = null;
-            for (let i = 0; i < PROXY_URLS.length; i++) {
+            for (let i = 0; i < urlsToTry.length; i++) {
                 try {
-                    const proxyUrl = PROXY_URLS[i] + (PROXY_URLS[i].includes('?') ? encodeURIComponent(API_URL) : API_URL);
+                    const proxy = urlsToTry[i];
+                    const proxyUrl = proxy ? 
+                        proxy + (proxy.includes('?') ? encodeURIComponent(API_URL) : API_URL) : 
+                        API_URL; // Direct API call when proxy is null
                     
                     const loadingMsg = isMobile ? 
-                        `Proxy ${i + 1}/${PROXY_URLS.length} (mobile)...` : 
-                        `Se conectează prin proxy ${i + 1}/${PROXY_URLS.length}...`;
+                        (proxy ? `Proxy ${i + 1}/${urlsToTry.length} (mobile)...` : `Încercare directă (mobile)...`) : 
+                        `Se conectează prin proxy ${i + 1}/${urlsToTry.length}...`;
                     showLoading(loadingMsg);
                     
                     // Create fetch with mobile-optimized timeout
@@ -570,8 +583,10 @@
                     
                     console.log(`⚡ PERFECT! Translated ${stockData.length} car models INSTANTLY with 0 errors!`);
                     
-                    // Save this working proxy for next time
-                    localStorage.setItem('lastWorkingProxy', PROXY_URLS[i]);
+                    // Save this working proxy for next time (only if it's actually a proxy)
+                    if (proxy) {
+                        localStorage.setItem('lastWorkingProxy', proxy);
+                    }
                     
                     filteredData = [...stockData];
                     updateStats();
@@ -593,20 +608,137 @@
                     }
                     
                     // Continue to next proxy if available
-                    if (i < PROXY_URLS.length - 1) {
+                    if (i < urlsToTry.length - 1) {
                         continue;
                     }
                 }
             }
             
-            // All proxies failed
-            console.error('All proxy services failed:', lastError);
-            const errorMsg = isMobile ? 
-                `Conexiune eșuată pe mobil. Încercați să reîmprospătați pagina sau să folosiți o conexiune WiFi mai stabilă.` :
-                `Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`;
-            showError(errorMsg);
+            // All proxies failed - try mobile fallback with sample data
+            if (isMobile) {
+                console.log('All proxies failed on mobile, loading sample data...');
+                showLoading('Se încarcă date de demonstrație...');
+                
+                // Use sample data for mobile when all else fails
+                setTimeout(() => {
+                    loadMobileFallbackData();
+                }, 1000);
+            } else {
+                console.error('All proxy services failed:', lastError);
+                const errorMsg = `Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`;
+                showError(errorMsg);
+            }
         }
         
+        // Mobile fallback data when API fails
+        function loadMobileFallbackData() {
+            console.log('Loading mobile fallback data...');
+            
+            // Create sample data representative of actual stock
+            const sampleData = [
+                {
+                    id: 'DEMO001',
+                    name: 'Volkswagen Golf VII Hatchback',
+                    originalName: 'Volkswagen Golf VII Хэтчбек',
+                    brand: 'Volkswagen',
+                    carModel: 'Golf VII Hatchback',
+                    available: true,
+                    quantity: 15,
+                    picture: '',
+                    inCatalog: true,
+                    price: 4200
+                },
+                {
+                    id: 'DEMO002', 
+                    name: 'Toyota Camry Sedan',
+                    originalName: 'Toyota Camry Седан',
+                    brand: 'Toyota',
+                    carModel: 'Camry Sedan',
+                    available: true,
+                    quantity: 8,
+                    picture: '',
+                    inCatalog: true,
+                    price: 4200
+                },
+                {
+                    id: 'DEMO003',
+                    name: 'BMW 3 Series Sedan',
+                    originalName: 'BMW 3 Серия Седан', 
+                    brand: 'BMW',
+                    carModel: '3 Series Sedan',
+                    available: true,
+                    quantity: 3,
+                    picture: '',
+                    inCatalog: true,
+                    price: 4200
+                },
+                {
+                    id: 'DEMO004',
+                    name: 'Ford Focus Hatchback',
+                    originalName: 'Ford Focus Хэтчбек',
+                    brand: 'Ford',
+                    carModel: 'Focus Hatchback',
+                    available: false,
+                    quantity: 0,
+                    picture: '',
+                    inCatalog: true,
+                    price: 4200
+                },
+                {
+                    id: 'DEMO005',
+                    name: 'Dacia Logan Sedan',
+                    originalName: 'Dacia Logan Седан',
+                    brand: 'Dacia',
+                    carModel: 'Logan Sedan', 
+                    available: true,
+                    quantity: 25,
+                    picture: '',
+                    inCatalog: false,
+                    price: 4500
+                }
+            ];
+            
+            stockData = sampleData;
+            filteredData = [...stockData];
+            updateStats();
+            renderStock();
+            updateLastUpdateTime();
+            showStock();
+            
+            // Show mobile demo notice
+            showMobileDemoNotice();
+        }
+        
+        function showMobileDemoNotice() {
+            // Create and show a notice that this is demo data
+            const notice = document.createElement('div');
+            notice.className = 'fixed top-20 left-4 right-4 bg-blue-50 border border-blue-200 rounded-xl p-4 z-50 shadow-lg';
+            notice.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs">📱</span>
+                    </div>
+                    <div>
+                        <h4 class="text-blue-800 font-semibold text-sm mb-1">Date de demonstrație</h4>
+                        <p class="text-blue-700 text-sm">
+                            API-ul nu poate fi accesat pe mobil din cauza restricțiilor CORS. 
+                            Sunt afișate date de demonstrație pentru a testa funcționalitatea.
+                        </p>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="mt-2 text-xs text-blue-600 underline">Închide</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notice);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (notice.parentElement) {
+                    notice.remove();
+                }
+            }, 10000);
+        }
+
         function showError(customMessage = null) {
             const errorMessage = document.getElementById('errorMessage');
             if (errorMessage && customMessage) {
