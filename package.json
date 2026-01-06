@@ -10,8 +10,5 @@
   },
   "keywords": ["autohuse", "huse auto", "moldova"],
   "author": "AutoHuse.md",
-  "license": "MIT",
-  "engines": {
-    "node": "20.x"
-  }
+  "license": "MIT"
 }
