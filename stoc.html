@@ -1276,10 +1276,15 @@
         }
 
 
-        // Create HTML for single item with simple image loading
+        // Create HTML for single item with proper image loading
         function createItemHTML(item, stockStatus) {
-            // No images for fallback data - keep it simple
+            // Handle image URLs through Vercel proxy
             let imageUrl = '';
+            if (item.picture && item.picture.trim()) {
+                const originalUrl = item.picture.trim();
+                // Use Vercel image proxy to avoid CORS issues
+                imageUrl = `/api/image?url=${encodeURIComponent(originalUrl)}`;
+            }
             
             return `
                 ${imageUrl ? `
