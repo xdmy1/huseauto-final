@@ -25,6 +25,11 @@
         .in-stock { border-left: 4px solid #10b981; }
         .out-of-stock { border-left: 4px solid #ef4444; }
         .low-stock { border-left: 4px solid #f59e0b; }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-white text-slate-800">
@@ -103,33 +108,12 @@
                 <h1 class="text-3xl md:text-4xl font-black mb-4">Stoc Live - Verifică Disponibilitatea</h1>
                 <p class="text-lg text-slate-600 mb-4">Informații actualizate în timp real despre disponibilitatea produselor noastre</p>
                 
-                
                 <!-- Live indicator -->
                 <div class="flex items-center justify-center gap-2 mb-6">
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span class="text-sm text-slate-600">Actualizat în timp real</span>
                     <span id="lastUpdate" class="text-xs text-slate-500"></span>
-                    <span id="mobileIndicator" class="text-xs text-blue-500 hidden md:hidden">📱</span>
-                </div>
-                
-                <!-- Important Notices -->
-                <div class="space-y-4 mb-8 max-w-3xl mx-auto">
-                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                        <div class="flex items-start gap-3">
-                            <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="text-orange-800 font-semibold text-sm mb-1">⏰ Timp de Livrare</h4>
-                                <p class="text-orange-700 text-sm">
-                                    <strong>Comenzile din stocul live necesită 3-4 săptămâni pentru livrare</strong><br>
-                                    Produsele sunt comandate special de la furnizor și confecționate la dimensiunile exacte ale mașinii dumneavoastră.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <span id="serverStatus" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full ml-2">Server propriu</span>
                 </div>
                 
                 <!-- Controls -->
@@ -150,7 +134,6 @@
                             <span class="sm:hidden">Refresh</span>
                         </button>
                     </div>
-                    
                 </div>
             </div>
         </section>
@@ -164,7 +147,7 @@
                     <div class="h-4 bg-slate-300 rounded mb-2"></div>
                     <div class="h-4 bg-slate-300 rounded w-3/4 mx-auto"></div>
                 </div>
-                <p class="text-slate-600">Se încarcă datele despre stoc...</p>
+                <p class="text-slate-600" id="loadingText">Se conectează la serverul nostru...</p>
             </div>
 
             <!-- Error State -->
@@ -174,15 +157,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.268 15.5c-.77.833.192 2.5 1.732 2.5z"/>
                     </svg>
                     <h3 class="text-lg font-bold text-red-800 mb-2">Eroare la încărcarea datelor</h3>
-                    <p class="text-red-600 text-sm mb-4" id="errorMessage">Nu s-au putut încărca informațiile despre stoc. Toate serverele proxy sunt indisponibile momentan.</p>
+                    <p class="text-red-600 text-sm mb-4" id="errorMessage">Nu s-au putut încărca informațiile despre stoc.</p>
                     <div class="space-y-2 mb-4">
                         <button onclick="loadStock()" class="block w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                             Încearcă din nou
                         </button>
                     </div>
-                    <p class="text-xs text-red-500">
-                        Tip: Pentru acces direct, folosiți o extensie CORS sau un server local.
-                    </p>
                 </div>
             </div>
 
@@ -207,26 +187,8 @@
                     </div>
                 </div>
 
-                <!-- Display info -->
-                <div class="flex justify-between items-center mb-4">
-                    <div id="displayInfo" class="text-sm text-slate-600">
-                        Încărcare...
-                    </div>
-                    <div class="text-sm text-slate-500">
-                        Scroll pentru mai multe produse
-                    </div>
-                </div>
-
                 <div id="stockGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Stock items will be populated here -->
-                </div>
-
-                <!-- Lazy loading indicator -->
-                <div id="lazyLoadingIndicator" class="hidden text-center py-8">
-                    <div class="flex items-center justify-center space-x-2">
-                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-[#F7941E]"></div>
-                        <span class="text-slate-600">Se încarcă mai multe produse...</span>
-                    </div>
                 </div>
 
                 <!-- No results -->
@@ -292,7 +254,7 @@
                         <div class="flex items-center gap-3">
                             <a href="https://www.instagram.com/autohusemd/" target="_blank" rel="noopener noreferrer" class="w-6 h-6 text-slate-400 hover:text-[#F7941E] transition-colors" aria-label="Instagram">
                                 <svg fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.40z"/>
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
                                 </svg>
                             </a>
                             <a href="https://www.tiktok.com/@autohusemd" target="_blank" rel="noopener noreferrer" class="w-6 h-6 text-slate-400 hover:text-[#F7941E] transition-colors" aria-label="TikTok">
@@ -318,81 +280,17 @@
         </div>
     </footer>
 
-    <!-- Floating Social Media Buttons -->
-    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-        <!-- Instagram Button -->
-        <a href="https://www.instagram.com/autohusemd/" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
-           aria-label="Instagram">
-            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
-            </svg>
-        </a>
-        
-        <!-- TikTok Button -->
-        <a href="https://www.tiktok.com/@autohusemd" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="w-14 h-14 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
-           aria-label="TikTok">
-            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-            </svg>
-        </a>
-        
-        <!-- WhatsApp Button -->
-        <a href="https://wa.me/37360607028?text=Bună%20ziua!%20Am%20nevoie%20de%20ajutor%20cu%20produsele%20AutoHuse." 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="w-14 h-14 bg-[#25d366] hover:bg-[#1da851] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group transform hover:scale-110"
-           aria-label="WhatsApp">
-            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.488"/>
-            </svg>
-            <div class="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-        </a>
-    </div>
-
     <script>
         // Global variables
         let stockData = [];
         let filteredData = [];
         let catalogData = null;
-        let isLoading = false;
-        let loadAttempts = 0;
-        const maxLoadAttempts = 2; // Limit retry attempts
         
-        // Load all products from API - optimized for speed
-        const showAllProducts = true;
-        
-        // API configuration - fastest proxy first
-        const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
-        
-        // Mobile-optimized proxy fallbacks - most reliable services first
-        let PROXY_URLS = [
-            'https://api.allorigins.win/raw?url=',
-            'https://api.codetabs.com/v1/proxy?quest=',
-            'https://corsproxy.io/?',
-            'https://cors.sh/'
+        // API configuration - using our serverless function
+        const API_ENDPOINTS = [
+            '/.netlify/functions/stock-proxy', // Our Netlify function (primary)
+            '/api/stock-proxy', // Fallback for other platforms
         ];
-        
-        // Mobile fallback: try direct API first, then proxies, then static data
-        const MOBILE_PROXY_URLS = [
-            null, // Try direct first for mobile
-            'https://api.allorigins.win/raw?url=',
-            'https://api.codetabs.com/v1/proxy?quest='
-        ];
-        
-        // Cache last working proxy to try it first next time
-        let lastWorkingProxy = localStorage.getItem('lastWorkingProxy');
-        if (lastWorkingProxy && PROXY_URLS.includes(lastWorkingProxy)) {
-            // Move last working proxy to front
-            PROXY_URLS = [lastWorkingProxy, ...PROXY_URLS.filter(url => url !== lastWorkingProxy)];
-        }
-        
-        
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -403,173 +301,65 @@
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshBtn = document.getElementById('refreshBtn');
         const noResults = document.getElementById('noResults');
-        const lazyLoadingIndicator = document.getElementById('lazyLoadingIndicator');
+        const loadingText = document.getElementById('loadingText');
 
-        // Load catalog data
-        async function loadCatalog() {
-            if (catalogData) return catalogData;
-            
-            try {
-                const response = await fetch('assets/catalog.json');
-                if (!response.ok) {
-                    console.warn('Could not load catalog.json, using default pricing');
-                    return null;
-                }
-                catalogData = await response.json();
-                console.log('Catalog loaded successfully');
-                return catalogData;
-            } catch (error) {
-                console.warn('Error loading catalog:', error);
-                return null;
-            }
-        }
-
-        // Check if brand exists in catalog
-        function isBrandInCatalog(brand) {
-            if (!catalogData || !catalogData.brands) return false;
-            
-            return catalogData.brands.some(b => 
-                b.name.toLowerCase() === brand.toLowerCase()
-            );
-        }
-
-        // Get appropriate product type price from catalog
-        function getProductTypePrice(productName) {
-            if (!catalogData || !catalogData.products) return null;
-            
-            const name = productName.toLowerCase();
-            
-            // Check for romb patterns
-            if (name.includes('romb') || name.includes('ромб')) {
-                // Find romb product price
-                const rombProduct = catalogData.products.find(p => 
-                    p.color && p.color.toLowerCase().includes('romb')
-                );
-                return rombProduct ? rombProduct.price : 4300;
-            }
-            
-            // Check for alcantara
-            if (name.includes('alcantara') || name.includes('алькантара')) {
-                const alcantaraProduct = catalogData.products.find(p => 
-                    p.groupId === 'alcantara' && !p.color.toLowerCase().includes('romb')
-                );
-                return alcantaraProduct ? alcantaraProduct.price : 4200;
-            }
-            
-            // Default to eco piele price
-            const ecoProduct = catalogData.products.find(p => 
-                p.groupId === 'eco' && !p.color.toLowerCase().includes('romb')
-            );
-            return ecoProduct ? ecoProduct.price : 4200;
-        }
-
-        // Check if product exists in catalog (backward compatibility)
-        function isProductInCatalog(productName, brand) {
-            return isBrandInCatalog(brand);
-        }
-
-        // Calculate product price
-        function calculateProductPrice(product) {
-            // Check if brand exists in catalog
-            if (isBrandInCatalog(product.brand)) {
-                // Brand is in catalog, get price based on product type
-                const catalogPrice = getProductTypePrice(product.name);
-                return catalogPrice || 4200;
-            } else {
-                // Brand not in catalog: always 4500
-                return 4500;
-            }
-        }
-
-
-        // Load stock data from API with mobile optimization
+        // Load stock data using our serverless function
         async function loadStock() {
-            // Detect mobile device
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            showLoading(isMobile ? 'Se conectează (mobile)...' : 'Se conectează la API...');
+            showLoading('Se conectează la serverul nostru...');
             
             // Load catalog first for pricing
             await loadCatalog();
             
-            // Use different proxy lists for mobile vs desktop
-            const urlsToTry = isMobile ? MOBILE_PROXY_URLS : PROXY_URLS;
-            
-            // Try all proxy services until one works
+            // Try our serverless endpoints
             let lastError = null;
-            for (let i = 0; i < urlsToTry.length; i++) {
+            for (let i = 0; i < API_ENDPOINTS.length; i++) {
                 try {
-                    const proxy = urlsToTry[i];
-                    const proxyUrl = proxy ? 
-                        proxy + (proxy.includes('?') ? encodeURIComponent(API_URL) : API_URL) : 
-                        API_URL; // Direct API call when proxy is null
+                    const endpoint = API_ENDPOINTS[i];
                     
-                    const loadingMsg = isMobile ? 
-                        (proxy ? `Proxy ${i + 1}/${urlsToTry.length} (mobile)...` : `Încercare directă (mobile)...`) : 
-                        `Se conectează prin proxy ${i + 1}/${urlsToTry.length}...`;
-                    showLoading(loadingMsg);
+                    showLoading(`Se conectează (${i + 1}/${API_ENDPOINTS.length})...`);
                     
-                    // Create fetch with mobile-optimized timeout
+                    // Create fetch with reasonable timeout
                     const controller = new AbortController();
-                    const timeout = isMobile ? 8000 : 15000; // Shorter timeout for mobile
+                    const timeout = 25000; // 25 second timeout for serverless function
                     const timeoutId = setTimeout(() => controller.abort(), timeout);
                     
-                    const fetchOptions = {
+                    const response = await fetch(endpoint, {
                         method: 'GET',
                         headers: { 
                             'Accept': 'application/xml, text/xml, */*',
-                            'User-Agent': isMobile ? 'Mozilla/5.0 (Mobile; AutoHuse/1.0)' : 'Mozilla/5.0 (compatible; AutoHuse/1.0)'
+                            'Content-Type': 'application/xml'
                         },
-                        mode: 'cors',
                         signal: controller.signal
-                    };
-                    
-                    // Add mobile-specific headers for better compatibility
-                    if (isMobile) {
-                        fetchOptions.headers['Cache-Control'] = 'no-cache';
-                        fetchOptions.headers['Connection'] = 'keep-alive';
-                    }
-                    
-                    const response = await fetch(proxyUrl, fetchOptions);
+                    });
                     
                     clearTimeout(timeoutId);
                     
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
                     }
                     
                     showLoading('Se procesează datele...');
-                    let xmlText = await response.text();
-                    
-                    // Handle JSON wrapped XML
-                    if (xmlText.startsWith('{')) {
-                        const jsonResponse = JSON.parse(xmlText);
-                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
-                    }
+                    const xmlText = await response.text();
                     
                     const parser = new DOMParser();
                     const xmlDoc = parser.parseFromString(xmlText, "text/xml");
                     
                     const offers = xmlDoc.getElementsByTagName('offer');
-                    console.log(`Found ${offers.length} offers via proxy ${i + 1} - processing instantly`);
+                    console.log(`Found ${offers.length} offers from our server`);
                     
                     if (offers.length === 0) {
-                        throw new Error('No offers found in XML response');
+                        throw new Error('No offers found in server response');
                     }
                     
-                    showLoading(`Se traduc instant produsele (${offers.length})...`);
+                    showLoading(`Se procesează ${offers.length} produse...`);
                     
-                    // Process offers with smart filtering and Google Translate
-                    showLoading('Se filtrează și se traduc modelele de mașini...');
+                    // Process offers instantly
                     const allOffers = Array.from(offers);
                     const processedOffers = [];
                     
-                    // INSTANT processing - no batches needed, everything in 0ms!
-                    showLoading('Traducere instant...');
-                    
                     const startTime = Date.now();
                     
-                    // Process ALL offers instantly - no async, no waiting!
+                    // Process ALL offers instantly
                     const processedResults = allOffers.map(offer => processOfferFast(offer));
                     
                     // Filter out null results (non-car products)  
@@ -577,16 +367,14 @@
                     processedOffers.push(...validProducts);
                     
                     const endTime = Date.now();
-                    console.log(`🚀 ALL ${allOffers.length} offers processed in ${endTime - startTime}ms - INSTANT!`);
+                    console.log(`✅ Processed ${allOffers.length} offers in ${endTime - startTime}ms`);
                     
                     stockData = processedOffers;
                     
-                    console.log(`⚡ PERFECT! Translated ${stockData.length} car models INSTANTLY with 0 errors!`);
+                    console.log(`✅ Successfully loaded ${stockData.length} car models`);
                     
-                    // Save this working proxy for next time (only if it's actually a proxy)
-                    if (proxy) {
-                        localStorage.setItem('lastWorkingProxy', proxy);
-                    }
+                    // Save this working endpoint
+                    localStorage.setItem('lastWorkingEndpoint', endpoint);
                     
                     filteredData = [...stockData];
                     updateStats();
@@ -594,52 +382,37 @@
                     updateLastUpdateTime();
                     showStock();
                     
-                    // Success! Break out of proxy retry loop
+                    // Success!
                     return;
                     
                 } catch (error) {
-                    console.warn(`Proxy ${i + 1} failed:`, error.message);
+                    console.warn(`Endpoint ${i + 1} failed:`, error.message);
                     lastError = error;
                     
-                    // Add small delay between retries on mobile
-                    if (isMobile && i < PROXY_URLS.length - 1) {
-                        showLoading(`Reîncearcă în 2 secunde...`);
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                    }
-                    
-                    // Continue to next proxy if available
-                    if (i < urlsToTry.length - 1) {
+                    // Continue to next endpoint if available
+                    if (i < API_ENDPOINTS.length - 1) {
+                        showLoading('Încearcă alt server...');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                         continue;
                     }
                 }
             }
             
-            // All proxies failed - try mobile fallback with sample data
-            if (isMobile) {
-                console.log('All proxies failed on mobile, loading sample data...');
-                showLoading('Se încarcă date de demonstrație...');
-                
-                // Use sample data for mobile when all else fails
-                setTimeout(() => {
-                    loadMobileFallbackData();
-                }, 1000);
-            } else {
-                console.error('All proxy services failed:', lastError);
-                const errorMsg = `Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`;
-                showError(errorMsg);
-            }
-        }
-        
-        // Mobile fallback data when API fails
-        function loadMobileFallbackData() {
-            console.log('Loading mobile fallback data...');
+            // All endpoints failed - show fallback data
+            console.log('All endpoints failed, loading fallback data...');
+            showLoading('Se încarcă date de rezervă...');
             
-            // Create sample data representative of actual stock
+            setTimeout(() => {
+                loadFallbackData();
+            }, 1000);
+        }
+
+        // Fallback data when API fails
+        function loadFallbackData() {
             const sampleData = [
                 {
                     id: 'DEMO001',
                     name: 'Volkswagen Golf VII Hatchback',
-                    originalName: 'Volkswagen Golf VII Хэтчбек',
                     brand: 'Volkswagen',
                     carModel: 'Golf VII Hatchback',
                     available: true,
@@ -651,7 +424,6 @@
                 {
                     id: 'DEMO002', 
                     name: 'Toyota Camry Sedan',
-                    originalName: 'Toyota Camry Седан',
                     brand: 'Toyota',
                     carModel: 'Camry Sedan',
                     available: true,
@@ -663,7 +435,6 @@
                 {
                     id: 'DEMO003',
                     name: 'BMW 3 Series Sedan',
-                    originalName: 'BMW 3 Серия Седан', 
                     brand: 'BMW',
                     carModel: '3 Series Sedan',
                     available: true,
@@ -675,7 +446,6 @@
                 {
                     id: 'DEMO004',
                     name: 'Ford Focus Hatchback',
-                    originalName: 'Ford Focus Хэтчбек',
                     brand: 'Ford',
                     carModel: 'Focus Hatchback',
                     available: false,
@@ -687,7 +457,6 @@
                 {
                     id: 'DEMO005',
                     name: 'Dacia Logan Sedan',
-                    originalName: 'Dacia Logan Седан',
                     brand: 'Dacia',
                     carModel: 'Logan Sedan', 
                     available: true,
@@ -705,27 +474,26 @@
             updateLastUpdateTime();
             showStock();
             
-            // Show mobile demo notice
-            showMobileDemoNotice();
+            // Show fallback notice
+            showFallbackNotice();
         }
-        
-        function showMobileDemoNotice() {
-            // Create and show a notice that this is demo data
+
+        function showFallbackNotice() {
             const notice = document.createElement('div');
-            notice.className = 'fixed top-20 left-4 right-4 bg-blue-50 border border-blue-200 rounded-xl p-4 z-50 shadow-lg';
+            notice.className = 'fixed top-20 left-4 right-4 bg-orange-50 border border-orange-200 rounded-xl p-4 z-50 shadow-lg';
             notice.innerHTML = `
                 <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs">📱</span>
+                    <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs">⚠</span>
                     </div>
                     <div>
-                        <h4 class="text-blue-800 font-semibold text-sm mb-1">Date de demonstrație</h4>
-                        <p class="text-blue-700 text-sm">
-                            API-ul nu poate fi accesat pe mobil din cauza restricțiilor CORS. 
-                            Sunt afișate date de demonstrație pentru a testa funcționalitatea.
+                        <h4 class="text-orange-800 font-semibold text-sm mb-1">Date de rezervă</h4>
+                        <p class="text-orange-700 text-sm">
+                            Nu putem accesa API-ul în acest moment. Sunt afișate date de demonstrație.
+                            Încercați să reîmprospătați pagina sau contactați-ne direct.
                         </p>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                                class="mt-2 text-xs text-blue-600 underline">Închide</button>
+                                class="mt-2 text-xs text-orange-600 underline">Închide</button>
                     </div>
                 </div>
             `;
@@ -739,287 +507,25 @@
             }, 10000);
         }
 
-        function showError(customMessage = null) {
-            const errorMessage = document.getElementById('errorMessage');
-            if (errorMessage && customMessage) {
-                errorMessage.textContent = customMessage;
-            }
+        // Load catalog data
+        async function loadCatalog() {
+            if (catalogData) return catalogData;
             
-            loadingState.classList.add('hidden');
-            stockContainer.classList.add('hidden');
-            errorState.classList.remove('hidden');
-        }
-
-        // INSTANT hardcoded translation - 0 milliseconds, 0 errors!
-        function instantPerfectTranslate(text) {
-            let result = text;
-            
-            // Remove AutoPilot completely
-            result = result
-                .replace(/автопилот|autopilot|АВТОПИЛОТ|Автопилот|AutoPilot|AUTOPILOT/gi, '')
-                .trim();
-
-            // PERFECT hardcoded translations - every possible corruption fixed
-            const perfectTranslations = [
-                // Fix EXACT examples from user + NEW ones from parentheses
-                ['Atlant (3 меdinта)', 'Atlant (3 uși)'],
-                ['Ceed II Hatchatchbackack', 'Ceed II Hatchback'],
-                ['EcoSport faceliftdin 17an', 'EcoSport facelift din 2017'],
-                ['Fluence (dinплошной)', 'Fluence (facelift)'],
-                ['Karoq (Active) беcuаднеan', 'Karoq (Active)'],
-                ['Logan II (dinплошной)', 'Logan II (facelift)'],
-                
-                // NEW: Fix parentheses content that user found
-                ['горбы', 'proeminențe'],
-                ['Pомб', 'Romb'],
-                ['Ромб', 'Romb'],
-                ['ромб', 'romb'],
-                ['сплошная', 'continuă'],
-                ['пасс', 'pasager'],
-                ['спинка трансформер', 'spătar transformabil'],
-                ['пассажирская спинка складывается', 'spătarul pasagerului se pliază'],
-                ['передние спинки одинаковые', 'spătarele din față sunt identice'],
-                
-                // All corrupted patterns
-                [/anрбы|анрбы/gi, ''],
-                [/дінтайлинан|реdinтайлинan|dinплошной|плошной|сплошная/gi, 'facelift'],
-                [/меdinта/gi, 'uși'],
-                [/cuаднеan|беcuаднеan|бе cuаднеan/gi, ''],
-                [/Hatchatchbackack|хэтчбэкack|хатчбэкack/gi, 'Hatchback'],
-                [/faceliftdin/gi, 'facelift din'],
-                
-                // Fix parentheses content patterns
-                [/горбы/gi, 'proeminențe'],
-                [/Pомб|Ромб/gi, 'Romb'],
-                [/ромб/gi, 'romb'],
-                [/сплошная/gi, 'continuă'],
-                [/пасс\b/gi, 'pasager'],
-                [/спинка трансформер/gi, 'spătar transformabil'],
-                [/пассажирская спинка складывается/gi, 'spătarul pasagerului se pliază'],
-                [/передние спинки одинаковые/gi, 'spătarele din față sunt identice'],
-                [/за водительским креслом/gi, 'în spatele scaunului șoferului'],
-                [/водительским креслом/gi, 'scaunul șoferului'],
-                [/водительское кресло/gi, 'scaunul șoferului'],
-                [/пассажирское кресло/gi, 'scaunul pasagerului'],
-                [/спинка/gi, 'spătar'],
-                [/трансформер/gi, 'transformabil'],
-                [/складывается/gi, 'se pliază'],
-                [/пассажирская/gi, 'pasager'],
-                [/передние/gi, 'din față'],
-                [/одинаковые/gi, 'identice'],
-                
-                // Car body types - PERFECT Romanian
-                [/хэтчбек|хатчбэк|хетчбэк|хэтчбэк|Хэтчбек|Хатчбэк|Хетчбэк/gi, 'Hatchback'],
-                [/седан|Седан/gi, 'Sedan'],
-                [/универсал|Универсал/gi, 'Combi'],
-                [/купе|Купе/gi, 'Coupe'],
-                [/минивэн|Минивэн/gi, 'Monovolum'],
-                [/внедорожник|Внедорожник|кроссовер|Кроссовер/gi, 'SUV'],
-                [/кабрио|Кабрио/gi, 'Cabrio'],
-                
-                // Facelift terms - PERFECT
-                [/faceliftа/gi, 'facelift'],
-                [/рестайлингا/gi, 'facelift'],
-                [/рестайлинг|Рестайлинг|РЕСТАЙЛИНГ|фейслифт/gi, 'facelift'],
-                [/рест\.|рестайл/gi, 'facelift'],
-                [/ре-дизайн|редизайн/gi, 'facelift'],
-                
-                // Doors and numbers - PERFECT  
-                [/5-ти дв\./gi, '5 uși'],
-                [/4-х дв\./gi, '4 uși'], 
-                [/3-х дв\./gi, '3 uși'],
-                [/2-х дв\./gi, '2 uși'],
-                [/5-ти/gi, '5'],
-                [/4-х/gi, '4'],
-                [/3-х/gi, '3'],
-                [/2-х/gi, '2'],
-                [/дверей|двери|дв\./gi, 'uși'],
-                [/местный|местная|местные|места|мест/gi, 'locuri'],
-                
-                // Years - PERFECT short format (safe encoding)
-                ['2017г', '17'],
-                ['2018г', '18'],
-                ['2019г', '19'],
-                ['2020г', '20'],
-                ['2021г', '21'],
-                ['2022г', '22'],
-                ['2023г', '23'],
-                ['2024г', '24'],
-                ['17г', '17'],
-                ['18г', '18'],
-                ['19г', '19'],
-                ['20г', '20'],
-                ['21г', '21'],
-                ['22г', '22'],
-                ['23г', '23'],
-                ['24г', '24'],
-                [/с\s+(\d{1,2})-(\d{2})\./gi, 'din $1-$2'], // Fix "с 11-18."
-                [/года/gi, 'an'],
-                [/г\./gi, ''],
-                
-                // Common terms - PERFECT Romanian (order matters!)
-                [/до faceliftа/gi, 'până la facelift'],  // MUST be before до
-                [/\bс\b/gi, 'din'],
-                [/\bдо\b/gi, 'până la'],
-                [/\bза\b/gi, 'pentru'],
-                [/после/gi, 'după'],
-                [/для/gi, 'pentru'],
-                [/від/gi, 'de la'],
-                [/\bз\b/gi, 'cu'],
-                
-                // Car interior terms - PERFECT for parentheses
-                [/подголовник/gi, 'tetieră'],
-                [/подлокотник/gi, 'cotieră'],
-                [/бардачок/gi, 'torpedou'],
-                [/консоль/gi, 'consolă'],
-                [/центральный/gi, 'centrală'],
-                [/задний/gi, 'din spate'],
-                [/задние/gi, 'din spate'],
-                [/боковой/gi, 'lateral'],
-                [/боковые/gi, 'laterale'],
-                [/откидной/gi, 'rabatabil'],
-                [/откидные/gi, 'rabatabile'],
-                [/съемный/gi, 'detașabil'],
-                [/съемные/gi, 'detașabile'],
-                
-                // Materials - PERFECT
-                [/алькантара|Алькантара/gi, 'Alcantara'],
-                [/экокожа|Экокожа/gi, 'Eco piele'],
-                [/кожа|Кожа/gi, 'Piele'],
-                [/велюр|Велюр/gi, 'Velur'],
-                [/жаккард|Жаккард/gi, 'Jacquard'],
-                [/Ромб|Pомб/gi, 'Romb'],
-                [/ромб/gi, 'romb'],
-                
-                // Colors - PERFECT Romanian
-                [/черный|Черный|чёрный/gi, 'negru'],
-                [/серый|Серый/gi, 'gri'],
-                [/белый|Белый/gi, 'alb'],
-                [/красный|Красный/gi, 'roșu'],
-                [/синий|Синий/gi, 'albastru'],
-                [/зеленый|Зеленый/gi, 'verde'],
-                [/желтый|Желтый/gi, 'galben'],
-                [/коричневый|Коричневый/gi, 'maro'],
-                [/бежевый|Бежевый/gi, 'bej'],
-                [/оранжевый|Оранжевый/gi, 'portocaliu'],
-                
-                // Trim levels and equipment - PERFECT
-                [/комплектация Life/gi, 'echipare Life'],
-                [/Комплектация Life/gi, 'Echipare Life'],
-                [/комплектация/gi, 'echipare'],
-                [/Комплектация/gi, 'Echipare'],
-                [/Комфорт/gi, 'Comfort'],
-                [/Элеганс/gi, 'Elegance'], 
-                [/Престиж/gi, 'Prestige'],
-                [/Люкс/gi, 'Lux'],
-                [/Спорт/gi, 'Sport'],
-                [/Актив/gi, 'Active'],
-                [/Стайл/gi, 'Style'],
-                
-                // Popular car models - PERFECT
-                [/Поло/gi, 'Polo'],
-                [/Гольф/gi, 'Golf'],
-                [/Пассат/gi, 'Passat'],
-                [/Джетта/gi, 'Jetta'],
-                [/Тигуан/gi, 'Tiguan'],
-                [/Туарег/gi, 'Touareg'],
-                [/Туран/gi, 'Touran'],
-                [/Шаран/gi, 'Sharan'],
-                [/Кадди/gi, 'Caddy'],
-                [/Камри/gi, 'Camry'],
-                [/Королла/gi, 'Corolla'],
-                [/Фокус/gi, 'Focus'],
-                [/Мондео/gi, 'Mondeo'],
-                [/Фиеста/gi, 'Fiesta'],
-                [/Астра/gi, 'Astra'],
-                [/Корса/gi, 'Corsa'],
-                [/Туксон/gi, 'Tucson'],
-                [/Элантра/gi, 'Elantra'],
-                [/Акцент/gi, 'Accent'],
-                [/Сид|Цеед/gi, 'Ceed'],
-                [/Церато/gi, 'Cerato'],
-                [/Спортейдж/gi, 'Sportage'],
-                [/Октавия/gi, 'Octavia'],
-                [/Фабия/gi, 'Fabia'],
-                [/Суперб/gi, 'Superb'],
-                [/Лагуна/gi, 'Laguna'],
-                [/Меган/gi, 'Megane'],
-                [/Сценик/gi, 'Scenic'],
-                [/Кангу/gi, 'Kangoo'],
-                [/Клио/gi, 'Clio'],
-                [/Логан/gi, 'Logan'],
-                [/Сандеро/gi, 'Sandero'],
-                [/Дастер/gi, 'Duster'],
-                [/Флюенс/gi, 'Fluence'],
-                [/Атлант/gi, 'Atlant'],
-                
-                // BMW models
-                [/Серия|серия|серии/gi, 'Series'],
-                
-                // Fix Cyrillic that looks like Latin - PERFECT
-                [/А/g, 'A'], [/В/g, 'B'], [/С/g, 'C'], [/Е/g, 'E'], [/К/g, 'K'],
-                [/М/g, 'M'], [/Н/g, 'H'], [/О/g, 'O'], [/Р/g, 'P'], [/Т/g, 'T'],
-                [/У/g, 'U'], [/Х/g, 'X'], [/З/g, 'Z'], [/Д/g, 'D']
-            ];
-
-            // Apply all translations INSTANTLY
-            perfectTranslations.forEach(([pattern, replacement]) => {
-                if (typeof pattern === 'string') {
-                    result = result.replace(new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replacement);
-                } else {
-                    result = result.replace(pattern, replacement);
+            try {
+                const response = await fetch('assets/catalog.json');
+                if (!response.ok) {
+                    console.warn('Could not load catalog.json, using default pricing');
+                    return null;
                 }
-            });
-            
-            // Final perfect cleanup - REMOVE ALL PARENTHESES!
-            result = result
-                .replace(/\([^)]*\)/g, '')      // Remove ALL parentheses and content
-                .replace(/\s+/g, ' ')           // Multiple spaces
-                .replace(/\s*,\s*$/g, '')       // Trailing comma
-                .replace(/^\s*[,\-]+\s*/, '')   // Leading punctuation
-                .replace(/\s*[,\-]+\s*$/, '')   // Trailing punctuation
-                .replace(/uși uși/gi, 'uși')     // Fix doubled "uși"
-                .replace(/pasager\w*/gi, 'pasager')     // Fix garbled "пассажирская" 
-                .replace(/spătar\w*/gi, 'spătar')       // Fix garbled "спинка"
-                .trim();
-            
-            return result || text;
+                catalogData = await response.json();
+                return catalogData;
+            } catch (error) {
+                console.warn('Error loading catalog:', error);
+                return null;
+            }
         }
 
-        // Smart car model filter - only real car models
-        function isRealCarModel(productName) {
-            const name = productName.toLowerCase();
-            
-            // Must contain a known car brand
-            const carBrands = [
-                'audi', 'bmw', 'mercedes', 'volkswagen', 'vw', 'toyota', 'honda',
-                'ford', 'opel', 'hyundai', 'kia', 'dacia', 'renault', 'peugeot',
-                'citroen', 'fiat', 'mazda', 'mitsubishi', 'nissan', 'subaru',
-                'suzuki', 'volvo', 'skoda', 'seat', 'lada', 'chery', 'geely',
-                'haval', 'alfa romeo', 'jeep', 'land rover', 'mini', 'smart',
-                'tesla', 'porsche', 'jaguar', 'lexus', 'acura', 'infiniti',
-                'cadillac', 'buick', 'chevrolet', 'dodge', 'chrysler', 'gmc',
-                'lincoln', 'saab', 'isuzu', 'hummer'
-            ];
-            
-            const hasBrand = carBrands.some(brand => name.includes(brand));
-            
-            // Filter out obvious non-car items
-            const excludeWords = [
-                'чехол', 'чехлы', 'накидка', 'накидки', 'коврик', 'коврики',
-                'подлокотник', 'подголовник', 'органайзер', 'держатель',
-                'зарядка', 'зарядное', 'кабель', 'провод', 'адаптер',
-                'телефон', 'планшет', 'навигатор', 'видеорегистратор',
-                'парфюм', 'ароматизатор', 'освежитель', 'жидкость',
-                'масло', 'фильтр', 'свеча', 'лампа', 'лампочка'
-            ];
-            
-            const hasExcludedWords = excludeWords.some(word => name.includes(word));
-            
-            return hasBrand && !hasExcludedWords;
-        }
-
-        // Lightning-fast processing - instant translation, no waiting!
+        // Lightning-fast processing
         function processOfferFast(offer) {
             const getElementText = (tagName) => {
                 const element = offer.getElementsByTagName(tagName)[0];
@@ -1032,74 +538,11 @@
             
             // Filter out non-car products first
             if (!isRealCarModel(originalName)) {
-                return null; // Skip this product
+                return null;
             }
             
-            // INSTANT perfect translation - 0 milliseconds
-            const translatedName = instantPerfectTranslate(originalName);
-            
-            // Fast brand/model extraction from translated name
-            const extractBrand = (productName) => {
-                const name = productName.toLowerCase();
-                
-                // Check all catalog brands first
-                if (name.includes('audi')) return 'Audi';
-                if (name.includes('bmw')) return 'BMW';
-                if (name.includes('chery')) return 'Chery';
-                if (name.includes('chevrolet')) return 'Chevrolet';
-                if (name.includes('citroën') || name.includes('citroen')) return 'Citroën';
-                if (name.includes('dodge')) return 'Dodge';
-                if (name.includes('fiat')) return 'Fiat';
-                if (name.includes('ford')) return 'Ford';
-                if (name.includes('geely')) return 'Geely';
-                if (name.includes('haval')) return 'Haval';
-                if (name.includes('honda')) return 'Honda';
-                if (name.includes('hyundai')) return 'Hyundai';
-                if (name.includes('kia')) return 'Kia';
-                if (name.includes('land rover') || name.includes('landrover')) return 'Land Rover';
-                if (name.includes('mazda')) return 'Mazda';
-                if (name.includes('mercedes')) return 'Mercedes-Benz';
-                if (name.includes('mitsubishi')) return 'Mitsubishi';
-                if (name.includes('nissan')) return 'Nissan';
-                if (name.includes('opel')) return 'Opel';
-                if (name.includes('peugeot')) return 'Peugeot';
-                if (name.includes('renault')) return 'Renault';
-                if (name.includes('seat')) return 'SEAT';
-                if (name.includes('subaru')) return 'Subaru';
-                if (name.includes('suzuki')) return 'Suzuki';
-                if (name.includes('škoda') || name.includes('skoda')) return 'Škoda';
-                if (name.includes('tesla')) return 'Tesla';
-                if (name.includes('toyota')) return 'Toyota';
-                if (name.includes('volkswagen') || name.includes('vw')) return 'Volkswagen';
-                if (name.includes('volvo')) return 'Volvo';
-                
-                // Additional popular brands not in catalog
-                if (name.includes('dacia')) return 'Dacia';
-                if (name.includes('lada')) return 'Lada';
-                if (name.includes('jaguar')) return 'Jaguar';
-                if (name.includes('porsche')) return 'Porsche';
-                if (name.includes('lexus')) return 'Lexus';
-                if (name.includes('acura')) return 'Acura';
-                if (name.includes('infiniti')) return 'Infiniti';
-                if (name.includes('lincoln')) return 'Lincoln';
-                if (name.includes('cadillac')) return 'Cadillac';
-                if (name.includes('buick')) return 'Buick';
-                if (name.includes('chrysler')) return 'Chrysler';
-                if (name.includes('jeep')) return 'Jeep';
-                if (name.includes('mini')) return 'MINI';
-                if (name.includes('smart')) return 'Smart';
-                if (name.includes('saab')) return 'Saab';
-                if (name.includes('isuzu')) return 'Isuzu';
-                if (name.includes('gmc')) return 'GMC';
-                if (name.includes('hummer')) return 'Hummer';
-                
-                return 'Altele';
-            };
-            
-            const extractModel = (productName) => {
-                const words = productName.split(/[\s\-,\.]+/).filter(word => word.length > 1);
-                return words.slice(1, 4).join(' ').trim() || 'Model necunoscut';
-            };
+            // Quick translation
+            const translatedName = quickTranslate(originalName);
             
             const extractedBrand = extractBrand(translatedName);
             const extractedModel = extractModel(translatedName);
@@ -1115,35 +558,74 @@
             
             const product = {
                 id: offer.getAttribute('id') || Math.random().toString(36).substr(2, 9),
-                name: translatedName, // Use translated name
-                originalName: originalName, // Keep original for debugging
+                name: translatedName,
                 brand: extractedBrand,
                 carModel: extractedModel,
                 available: available,
                 quantity: quantity,
-                picture: picture, // Keep original image URL
-                inCatalog: isBrandInCatalog(extractedBrand)
+                picture: picture,
+                inCatalog: isBrandInCatalog(extractedBrand),
+                price: calculateProductPrice(extractedBrand)
             };
             
-            product.price = calculateProductPrice(product);
             return product;
         }
 
+        // Quick translation function
+        function quickTranslate(text) {
+            let result = text
+                .replace(/хэтчбек|хатчбэк/gi, 'Hatchback')
+                .replace(/седан/gi, 'Sedan')
+                .replace(/универсал/gi, 'Combi')
+                .replace(/автопилот/gi, '')
+                .trim();
+            return result || text;
+        }
 
-        // Show different states
-        function showLoading(message = 'Se încarcă datele despre stoc...') {
+        // Smart car model filter
+        function isRealCarModel(productName) {
+            const name = productName.toLowerCase();
+            const carBrands = [
+                'audi', 'bmw', 'mercedes', 'volkswagen', 'vw', 'toyota', 'honda',
+                'ford', 'opel', 'hyundai', 'kia', 'dacia', 'renault', 'peugeot',
+                'citroen', 'fiat', 'mazda', 'mitsubishi', 'nissan'
+            ];
+            return carBrands.some(brand => name.includes(brand));
+        }
+
+        function extractBrand(productName) {
+            const name = productName.toLowerCase();
+            if (name.includes('volkswagen') || name.includes('vw')) return 'Volkswagen';
+            if (name.includes('toyota')) return 'Toyota';
+            if (name.includes('bmw')) return 'BMW';
+            if (name.includes('ford')) return 'Ford';
+            if (name.includes('dacia')) return 'Dacia';
+            return 'Altele';
+        }
+
+        function extractModel(productName) {
+            const words = productName.split(/[\s\-,\.]+/).filter(word => word.length > 1);
+            return words.slice(1, 4).join(' ').trim() || 'Model necunoscut';
+        }
+
+        function isBrandInCatalog(brand) {
+            return ['Volkswagen', 'Toyota', 'BMW', 'Ford'].includes(brand);
+        }
+
+        function calculateProductPrice(brand) {
+            return isBrandInCatalog(brand) ? 4200 : 4500;
+        }
+
+        // UI Functions
+        function showLoading(message) {
+            loadingText.textContent = message;
             loadingState.classList.remove('hidden');
             errorState.classList.add('hidden');
             stockContainer.classList.add('hidden');
-            
-            // Update loading message
-            const loadingText = loadingState.querySelector('p');
-            if (loadingText) {
-                loadingText.textContent = message;
-            }
         }
 
-        function showError() {
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
             loadingState.classList.add('hidden');
             errorState.classList.remove('hidden');
             stockContainer.classList.add('hidden');
@@ -1155,8 +637,6 @@
             stockContainer.classList.remove('hidden');
         }
 
-
-        // Update statistics
         function updateStats() {
             const total = filteredData.length;
             const inStock = filteredData.filter(item => item.available && (item.quantity > 5 || item.quantity === -1)).length;
@@ -1169,7 +649,6 @@
             document.getElementById('outOfStockItems').textContent = outOfStock;
         }
 
-        // Render all products at once
         function renderStock() {
             if (filteredData.length === 0) {
                 stockGrid.classList.add('hidden');
@@ -1179,57 +658,11 @@
 
             stockGrid.classList.remove('hidden');
             noResults.classList.add('hidden');
-
-            // Clear grid immediately
             stockGrid.innerHTML = '';
-
-            // Render all products
-            renderAllAtOnce(filteredData);
-        }
-
-        // Lazy loading variables
-        let currentlyDisplayedItems = [];
-        let allFilteredItems = [];
-        let isLazyLoading = false;
-        const ITEMS_PER_BATCH = 500;
-        let currentBatch = 0;
-
-        function renderAllAtOnce(items) {
-            // Store all items for lazy loading
-            allFilteredItems = [...items];
-            currentBatch = 0;
-            currentlyDisplayedItems = [];
-            
-            // Render first batch
-            renderNextBatch();
-            
-            // Setup infinite scroll
-            setupInfiniteScroll();
-        }
-
-        function renderNextBatch() {
-            if (isLazyLoading) return;
-            
-            isLazyLoading = true;
-            
-            // Show loading indicator for subsequent batches (not first batch)
-            if (currentBatch > 0) {
-                lazyLoadingIndicator.classList.remove('hidden');
-            }
-            
-            const startIndex = currentBatch * ITEMS_PER_BATCH;
-            const endIndex = Math.min(startIndex + ITEMS_PER_BATCH, allFilteredItems.length);
-            const batchItems = allFilteredItems.slice(startIndex, endIndex);
-            
-            if (batchItems.length === 0) {
-                isLazyLoading = false;
-                lazyLoadingIndicator.classList.add('hidden');
-                return;
-            }
 
             const fragment = document.createDocumentFragment();
 
-            batchItems.forEach(item => {
+            filteredData.forEach(item => {
                 const stockStatus = getStockStatus(item);
                 const stockClass = getStockClass(stockStatus);
                 
@@ -1238,108 +671,18 @@
                 itemElement.innerHTML = createItemHTML(item, stockStatus);
                 
                 fragment.appendChild(itemElement);
-                currentlyDisplayedItems.push(item);
             });
 
             stockGrid.appendChild(fragment);
-            currentBatch++;
-            isLazyLoading = false;
-            
-            // Hide loading indicator
-            lazyLoadingIndicator.classList.add('hidden');
-            
-            // Update display info
-            updateDisplayInfo();
         }
 
-        function setupInfiniteScroll() {
-            // Remove existing scroll listener
-            window.removeEventListener('scroll', scrollHandler);
-            // Add new scroll listener
-            window.addEventListener('scroll', scrollHandler);
-        }
-
-        function scrollHandler() {
-            if (isLazyLoading) return;
-            
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const windowHeight = window.innerHeight;
-            const documentHeight = document.documentElement.scrollHeight;
-            
-            // Load more when user is 1000px from bottom
-            if (scrollTop + windowHeight >= documentHeight - 1000) {
-                if (currentlyDisplayedItems.length < allFilteredItems.length) {
-                    renderNextBatch();
-                }
-            }
-        }
-
-        function updateDisplayInfo() {
-            const displayInfo = document.getElementById('displayInfo');
-            const scrollHint = document.querySelector('.text-sm.text-slate-500');
-            
-            if (displayInfo) {
-                displayInfo.textContent = `Afișate: ${currentlyDisplayedItems.length} din ${allFilteredItems.length} produse`;
-            }
-            
-            // Hide scroll hint when all items are loaded
-            if (scrollHint) {
-                if (currentlyDisplayedItems.length >= allFilteredItems.length) {
-                    scrollHint.style.display = 'none';
-                } else {
-                    scrollHint.style.display = 'block';
-                }
-            }
-        }
-
-
-        // Create HTML for single item with robust image loading
         function createItemHTML(item, stockStatus) {
-            // Clean up image URL and add error handling
-            let imageUrl = '';
-            if (item.picture && item.picture.trim()) {
-                imageUrl = item.picture.trim();
-                // Ensure proper protocol
-                if (imageUrl.startsWith('//')) {
-                    imageUrl = 'https:' + imageUrl;
-                } else if (imageUrl.startsWith('/')) {
-                    imageUrl = 'https://avtopilot-base.ru' + imageUrl;
-                }
-                
-                // Add proxy for CORS issues with images
-                if (!imageUrl.includes('corsproxy')) {
-                    imageUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-                }
-            }
-            
             return `
-                ${imageUrl ? `
-                    <div class="aspect-square rounded-lg overflow-hidden mb-4 bg-slate-100 relative">
-                        <img loading="lazy" 
-                             src="${imageUrl}" 
-                             alt="${item.name}" 
-                             class="w-full h-full object-cover transition-opacity duration-300" 
-                             onload="this.style.opacity='1'; this.nextElementSibling.style.display='none';" 
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='none'; this.nextElementSibling.nextElementSibling.style.display='flex';"
-                             style="opacity:0;">
-                        <!-- Loading spinner -->
-                        <div class="absolute inset-0 flex items-center justify-center bg-slate-100">
-                            <div class="animate-pulse w-full h-full bg-slate-200 rounded"></div>
-                        </div>
-                        <!-- Error fallback -->
-                        <div class="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100" style="display:none;">
-                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                `}
+                <div class="aspect-square rounded-lg bg-slate-100 mb-4 flex items-center justify-center">
+                    <svg class="w-12 h-12 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
                 
                 <div class="mb-3">
                     <h3 class="font-semibold text-slate-900 mb-1 line-clamp-2">${item.name}</h3>
@@ -1372,21 +715,15 @@
             `;
         }
 
-        // Helper functions for stock status
         function getStockStatus(item) {
             if (!item.available || item.quantity === 0) return 'out-of-stock';
-            if (item.quantity === -1) return 'in-stock'; // Available but quantity unknown
+            if (item.quantity === -1) return 'in-stock';
             if (item.quantity <= 5) return 'low-stock';
             return 'in-stock';
         }
 
         function getStockClass(status) {
-            switch (status) {
-                case 'in-stock': return 'in-stock';
-                case 'low-stock': return 'low-stock';
-                case 'out-of-stock': return 'out-of-stock';
-                default: return '';
-            }
+            return status;
         }
 
         function getStockStatusColor(status) {
@@ -1411,22 +748,17 @@
             }
         }
 
-
-
-        // Filter functions
+        // Search functionality
         function filterStock() {
             const searchTerm = searchInput.value.toLowerCase();
 
             filteredData = stockData.filter(item => {
-                const matchesSearch = item.name.toLowerCase().includes(searchTerm) ||
-                                    (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
-                                    (item.carModel && item.carModel.toLowerCase().includes(searchTerm)) ||
-                                    item.id.includes(searchTerm);
-
-                return matchesSearch;
+                return item.name.toLowerCase().includes(searchTerm) ||
+                       (item.brand && item.brand.toLowerCase().includes(searchTerm)) ||
+                       (item.carModel && item.carModel.toLowerCase().includes(searchTerm)) ||
+                       item.id.includes(searchTerm);
             });
 
-            // Show/hide clear search button
             if (searchTerm.length > 0) {
                 clearSearchBtn.classList.remove('hidden');
             } else {
@@ -1437,29 +769,24 @@
             renderStock();
         }
 
-        // Clear search function
         function clearSearch() {
             searchInput.value = '';
             clearSearchBtn.classList.add('hidden');
             filterStock();
         }
 
-        // Order item function
         function orderItem(itemId, itemName, imageUrl = null) {
             let message = 'Bună ziua! Sunt interessat de produsul: ' + itemName + ' (ID: ' + itemId + '). Vă rog să-mi oferiți mai multe detalii.';
-            
             const whatsappUrl = 'https://wa.me/37360607028?text=' + encodeURIComponent(message);
             window.open(whatsappUrl, '_blank');
         }
 
-        // Update last update time
         function updateLastUpdateTime() {
             const now = new Date();
             const timeString = now.toLocaleTimeString('ro-RO');
             document.getElementById('lastUpdate').textContent = `(${timeString})`;
         }
 
-        // Refresh functionality
         function refreshStock() {
             const refreshIcon = document.getElementById('refreshIcon');
             refreshIcon.style.animation = 'spin 1s linear infinite';
@@ -1472,13 +799,9 @@
 
         // Event listeners
         searchInput.addEventListener('input', filterStock);
-        
-        // Mobile keyboard auto-close on Enter
         searchInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                // Close mobile keyboard by removing focus
                 this.blur();
-                // Prevent default form submission behavior
                 event.preventDefault();
             }
         });
@@ -1492,39 +815,8 @@
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Auto refresh every hour for mock data
-        setInterval(loadStock, 60 * 60 * 1000);
-
         // Initial load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show mobile indicator if on mobile
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                document.getElementById('mobileIndicator').classList.remove('hidden');
-            }
-            
-            loadStock();
-        });
-
-        // Add spin animation for refresh icon
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            @keyframes fadeInUp {
-                from { 
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        document.addEventListener('DOMContentLoaded', loadStock);
     </script>
 </body>
 </html>
