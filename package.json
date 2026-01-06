@@ -1,0 +1,17 @@
+{
+  "name": "autohuse-final",
+  "version": "1.0.0",
+  "description": "AutoHuse.md - Huse Auto Premium",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["autohuse", "huse auto", "moldova"],
+  "author": "AutoHuse.md",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

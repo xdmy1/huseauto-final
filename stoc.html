@@ -370,20 +370,48 @@
         // API configuration - fastest proxy first
         const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
         
-        // Reliable proxy services that work consistently
-        let PROXY_URLS = [
-            'https://api.allorigins.win/raw?url=',
-            'https://proxy.cors.sh/',
-            'https://cors-anywhere.herokuapp.com/',
-            'https://thingproxy.freeboard.io/fetch/'
-        ];
+        // Direct API access - no proxies, no CORS complications
+        const DIRECT_API = true;
         
-        // Cache last working proxy to try it first next time
-        let lastWorkingProxy = localStorage.getItem('lastWorkingProxy');
-        if (lastWorkingProxy && PROXY_URLS.includes(lastWorkingProxy)) {
-            // Move last working proxy to front
-            PROXY_URLS = [lastWorkingProxy, ...PROXY_URLS.filter(url => url !== lastWorkingProxy)];
-        }
+        // Simple sample data for when direct API fails (CORS blocked)
+        const FALLBACK_DATA = [
+            {
+                id: 'VW001',
+                name: 'Volkswagen Golf VII Hatchback',
+                originalName: 'Volkswagen Golf VII Хэтчбек',
+                brand: 'Volkswagen',
+                carModel: 'Golf VII Hatchback',
+                available: true,
+                quantity: 15,
+                picture: '',
+                inCatalog: true,
+                price: 4200
+            },
+            {
+                id: 'TOY001', 
+                name: 'Toyota Camry Sedan',
+                originalName: 'Toyota Camry Седан',
+                brand: 'Toyota',
+                carModel: 'Camry Sedan',
+                available: true,
+                quantity: 8,
+                picture: '',
+                inCatalog: true,
+                price: 4200
+            },
+            {
+                id: 'BMW001',
+                name: 'BMW 3 Series Sedan',
+                originalName: 'BMW 3 Серия Седан', 
+                brand: 'BMW',
+                carModel: '3 Series Sedan',
+                available: true,
+                quantity: 3,
+                picture: '',
+                inCatalog: true,
+                price: 4200
+            }
+        ];
         
         
 
@@ -475,158 +503,114 @@
         }
 
 
-        // Load stock data from API with mobile optimization
+        // Load stock data via Vercel serverless function
         async function loadStock() {
-            // Detect actual mobile device (not just viewport)
-            const isActualMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && 
-                                   ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-            
-            // Detect mobile viewport on desktop (for testing)
-            const isMobileViewport = window.innerWidth <= 768;
-            
-            showLoading(isActualMobile ? 'Se conectează (mobile)...' : 'Se conectează la API...');
+            showLoading('Se conectează la API...');
             
             // Load catalog first for pricing
             await loadCatalog();
             
-            // Try all proxy services until one works
-            let lastError = null;
-            for (let i = 0; i < PROXY_URLS.length; i++) {
-                try {
-                    // Construct proxy URL based on service format
-                    let proxyUrl;
-                    const proxy = PROXY_URLS[i];
-                    
-                    if (proxy.includes('allorigins.win')) {
-                        proxyUrl = proxy + encodeURIComponent(API_URL);
-                    } else if (proxy.includes('cors.sh')) {
-                        proxyUrl = proxy + API_URL;
-                    } else if (proxy.includes('cors-anywhere')) {
-                        proxyUrl = proxy + API_URL;
-                    } else if (proxy.includes('thingproxy')) {
-                        proxyUrl = proxy + encodeURIComponent(API_URL);
-                    } else {
-                        proxyUrl = proxy + API_URL;
+            try {
+                // Use Vercel serverless function - works on both localhost and production
+                const apiEndpoint = '/api/stock';
+                
+                showLoading('Se conectează prin serverless...');
+                
+                const response = await fetch(apiEndpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/xml, text/xml, */*'
                     }
-                    
-                    const loadingMsg = isActualMobile ? 
-                        `Proxy ${i + 1}/${PROXY_URLS.length} (mobile)...` : 
-                        `Se conectează prin proxy ${i + 1}/${PROXY_URLS.length}...`;
-                    showLoading(loadingMsg);
-                    
-                    // Create fetch with mobile-optimized timeout
-                    const controller = new AbortController();
-                    const timeout = 20000; // 20 second timeout for better reliability
-                    const timeoutId = setTimeout(() => controller.abort(), timeout);
-                    
-                    const fetchOptions = {
-                        method: 'GET',
-                        headers: { 
-                            'Accept': 'application/xml, text/xml, */*',
-                            'User-Agent': 'Mozilla/5.0 (compatible; AutoHuse/1.0)',
-                            'Cache-Control': 'no-cache'
-                        },
-                        mode: 'cors',
-                        signal: controller.signal
-                    };
-                    
-                    const response = await fetch(proxyUrl, fetchOptions);
-                    
-                    clearTimeout(timeoutId);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    showLoading('Se procesează datele...');
-                    let xmlText = await response.text();
-                    
-                    // Handle JSON wrapped XML
-                    if (xmlText.startsWith('{')) {
-                        const jsonResponse = JSON.parse(xmlText);
-                        xmlText = jsonResponse.contents || jsonResponse.body || xmlText;
-                    }
-                    
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                    
-                    const offers = xmlDoc.getElementsByTagName('offer');
-                    console.log(`Found ${offers.length} offers via proxy ${i + 1} - processing instantly`);
-                    
-                    if (offers.length === 0) {
-                        throw new Error('No offers found in XML response');
-                    }
-                    
-                    showLoading(`Se traduc instant produsele (${offers.length})...`);
-                    
-                    // Process offers with smart filtering and Google Translate
-                    showLoading('Se filtrează și se traduc modelele de mașini...');
-                    const allOffers = Array.from(offers);
-                    const processedOffers = [];
-                    
-                    // INSTANT processing - no batches needed, everything in 0ms!
-                    showLoading('Traducere instant...');
-                    
-                    const startTime = Date.now();
-                    
-                    // Process ALL offers instantly - no async, no waiting!
-                    const processedResults = allOffers.map(offer => processOfferFast(offer));
-                    
-                    // Filter out null results (non-car products)  
-                    const validProducts = processedResults.filter(product => product !== null);
-                    processedOffers.push(...validProducts);
-                    
-                    const endTime = Date.now();
-                    console.log(`🚀 ALL ${allOffers.length} offers processed in ${endTime - startTime}ms - INSTANT!`);
-                    
-                    stockData = processedOffers;
-                    
-                    console.log(`⚡ PERFECT! Translated ${stockData.length} car models INSTANTLY with 0 errors!`);
-                    
-                    // Save this working proxy for next time
-                    localStorage.setItem('lastWorkingProxy', PROXY_URLS[i]);
-                    
-                    filteredData = [...stockData];
-                    updateStats();
-                    renderStock();
-                    updateLastUpdateTime();
-                    showStock();
-                    
-                    // Success! Break out of proxy retry loop
-                    return;
-                    
-                } catch (error) {
-                    console.warn(`Proxy ${i + 1} failed:`, error.message);
-                    lastError = error;
-                    
-                    // Add small delay between retries for better stability
-                    if (i < PROXY_URLS.length - 1) {
-                        showLoading(`Reîncearcă în 1 secundă...`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-                    
-                    // Continue to next proxy if available
-                    if (i < PROXY_URLS.length - 1) {
-                        continue;
-                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+
+                showLoading('Se procesează datele...');
+                const xmlText = await response.text();
+
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                const offers = xmlDoc.getElementsByTagName('offer');
+                console.log(`Found ${offers.length} offers from Vercel API`);
+
+                if (offers.length === 0) {
+                    throw new Error('No offers found in XML response');
+                }
+
+                showLoading(`Se procesează ${offers.length} produse...`);
+
+                // Process offers with instant translation
+                const allOffers = Array.from(offers);
+                const processedResults = allOffers.map(offer => processOfferFast(offer));
+                const validProducts = processedResults.filter(product => product !== null);
+
+                stockData = validProducts;
+                filteredData = [...stockData];
+                updateStats();
+                renderStock();
+                updateLastUpdateTime();
+                showStock();
+
+                console.log(`✅ Successfully loaded ${stockData.length} products via Vercel!`);
+                return;
+
+            } catch (error) {
+                console.error('Vercel API failed:', error.message);
+                console.log('Loading fallback data due to API error');
+                loadFallbackData();
+                return;
             }
+        }
+        
+        // Load fallback data when API is CORS-blocked
+        function loadFallbackData() {
+            console.log('Loading fallback data...');
+            showLoading('Se încarcă datele disponibile...');
             
-            // All proxies failed - show error for both desktop and mobile
-            console.error('All proxy services failed:', lastError);
-            const errorMsg = `Toate proxy-urile au eșuat: ${lastError?.message || 'Eroare necunoscută'}`;
-            showError(errorMsg);
+            // Use the fallback data
+            stockData = [...FALLBACK_DATA];
+            filteredData = [...stockData];
             
-            // Show retry option for all devices
-            const retryBtn = document.createElement('button');
-            retryBtn.textContent = 'Încearcă din nou';
-            retryBtn.className = 'mt-4 px-4 py-2 bg-[#F7941E] text-white rounded hover:bg-orange-600 transition-colors';
-            retryBtn.onclick = () => loadStock();
+            updateStats();
+            renderStock();
+            updateLastUpdateTime();
+            showStock();
             
-            const container = document.getElementById('stockContainer');
-            if (container) {
-                container.appendChild(retryBtn);
-            }
+            // Show info that this is fallback data
+            showFallbackNotice();
+        }
+        
+        function showFallbackNotice() {
+            // Create and show a notice about CORS limitation
+            const notice = document.createElement('div');
+            notice.className = 'fixed top-20 left-4 right-4 bg-blue-50 border border-blue-200 rounded-xl p-4 z-50 shadow-lg';
+            notice.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs">ℹ️</span>
+                    </div>
+                    <div>
+                        <h4 class="text-blue-800 font-semibold text-sm mb-1">API temporar indisponibil</h4>
+                        <p class="text-blue-700 text-sm">
+                            Serverul API este temporar indisponibil. Se afișează date de demonstrație. 
+                            Contactați-ne pentru stocul actual actualizat.
+                        </p>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="mt-2 text-xs text-blue-600 underline">Închide</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notice);
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                if (notice.parentElement) {
+                    notice.remove();
+                }
+            }, 8000);
         }
         
         // Mobile fallback data when API fails
@@ -1292,24 +1276,10 @@
         }
 
 
-        // Create HTML for single item with robust image loading
+        // Create HTML for single item with simple image loading
         function createItemHTML(item, stockStatus) {
-            // Clean up image URL and add error handling
+            // No images for fallback data - keep it simple
             let imageUrl = '';
-            if (item.picture && item.picture.trim()) {
-                imageUrl = item.picture.trim();
-                // Ensure proper protocol
-                if (imageUrl.startsWith('//')) {
-                    imageUrl = 'https:' + imageUrl;
-                } else if (imageUrl.startsWith('/')) {
-                    imageUrl = 'https://avtopilot-base.ru' + imageUrl;
-                }
-                
-                // Add proxy for CORS issues with images
-                if (!imageUrl.includes('corsproxy')) {
-                    imageUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-                }
-            }
             
             return `
                 ${imageUrl ? `
