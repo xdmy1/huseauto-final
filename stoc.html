@@ -113,7 +113,6 @@
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span class="text-sm text-slate-600">Actualizat în timp real</span>
                     <span id="lastUpdate" class="text-xs text-slate-500"></span>
-                    <span id="serverStatus" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full ml-2">Server propriu</span>
                 </div>
                 
                 <!-- Controls -->
@@ -286,11 +285,11 @@
         let filteredData = [];
         let catalogData = null;
         
-        // API configuration - using our serverless function
-        const API_ENDPOINTS = [
-            '/.netlify/functions/stock-proxy', // Our Netlify function (primary)
-            '/api/stock-proxy', // Fallback for other platforms
-        ];
+        // Simple solution - try only the most reliable proxy, then fallback to static data
+        const API_URL = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
+        
+        // Use only allorigins.win which is the most reliable and works on mobile
+        const PROXY_URL = `https://api.allorigins.win/get?url=${encodeURIComponent(API_URL)}`;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -303,108 +302,81 @@
         const noResults = document.getElementById('noResults');
         const loadingText = document.getElementById('loadingText');
 
-        // Load stock data using our serverless function
+        // Simple, reliable loading with quick fallback
         async function loadStock() {
-            showLoading('Se conectează la serverul nostru...');
+            showLoading('Se conectează...');
             
             // Load catalog first for pricing
             await loadCatalog();
             
-            // Try our serverless endpoints
-            let lastError = null;
-            for (let i = 0; i < API_ENDPOINTS.length; i++) {
-                try {
-                    const endpoint = API_ENDPOINTS[i];
-                    
-                    showLoading(`Se conectează (${i + 1}/${API_ENDPOINTS.length})...`);
-                    
-                    // Create fetch with reasonable timeout
-                    const controller = new AbortController();
-                    const timeout = 25000; // 25 second timeout for serverless function
-                    const timeoutId = setTimeout(() => controller.abort(), timeout);
-                    
-                    const response = await fetch(endpoint, {
-                        method: 'GET',
-                        headers: { 
-                            'Accept': 'application/xml, text/xml, */*',
-                            'Content-Type': 'application/xml'
-                        },
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    showLoading('Se procesează datele...');
-                    const xmlText = await response.text();
-                    
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                    
-                    const offers = xmlDoc.getElementsByTagName('offer');
-                    console.log(`Found ${offers.length} offers from our server`);
-                    
-                    if (offers.length === 0) {
-                        throw new Error('No offers found in server response');
-                    }
-                    
-                    showLoading(`Se procesează ${offers.length} produse...`);
-                    
-                    // Process offers instantly
-                    const allOffers = Array.from(offers);
-                    const processedOffers = [];
-                    
-                    const startTime = Date.now();
-                    
-                    // Process ALL offers instantly
-                    const processedResults = allOffers.map(offer => processOfferFast(offer));
-                    
-                    // Filter out null results (non-car products)  
-                    const validProducts = processedResults.filter(product => product !== null);
-                    processedOffers.push(...validProducts);
-                    
-                    const endTime = Date.now();
-                    console.log(`✅ Processed ${allOffers.length} offers in ${endTime - startTime}ms`);
-                    
-                    stockData = processedOffers;
-                    
-                    console.log(`✅ Successfully loaded ${stockData.length} car models`);
-                    
-                    // Save this working endpoint
-                    localStorage.setItem('lastWorkingEndpoint', endpoint);
-                    
-                    filteredData = [...stockData];
-                    updateStats();
-                    renderStock();
-                    updateLastUpdateTime();
-                    showStock();
-                    
-                    // Success!
-                    return;
-                    
-                } catch (error) {
-                    console.warn(`Endpoint ${i + 1} failed:`, error.message);
-                    lastError = error;
-                    
-                    // Continue to next endpoint if available
-                    if (i < API_ENDPOINTS.length - 1) {
-                        showLoading('Încearcă alt server...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        continue;
-                    }
+            try {
+                // Try the most reliable proxy with short timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+                
+                console.log('Trying allorigins.win proxy...');
+                
+                const response = await fetch(PROXY_URL, {
+                    method: 'GET',
+                    headers: { 
+                        'Accept': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
+                
+                showLoading('Se procesează...');
+                const jsonResponse = await response.json();
+                
+                if (!jsonResponse.contents) {
+                    throw new Error('No contents in response');
+                }
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(jsonResponse.contents, "text/xml");
+                
+                const offers = xmlDoc.getElementsByTagName('offer');
+                console.log(`Found ${offers.length} offers`);
+                
+                if (offers.length === 0) {
+                    throw new Error('No offers found');
+                }
+                
+                // Process offers quickly
+                const allOffers = Array.from(offers);
+                const processedResults = allOffers.map(offer => processOfferFast(offer));
+                const validProducts = processedResults.filter(product => product !== null);
+                
+                if (validProducts.length === 0) {
+                    throw new Error('No valid products found');
+                }
+                
+                stockData = validProducts;
+                
+                console.log(`✅ Successfully loaded ${stockData.length} car models`);
+                
+                filteredData = [...stockData];
+                updateStats();
+                renderStock();
+                updateLastUpdateTime();
+                showStock();
+                
+                return;
+                
+            } catch (error) {
+                console.warn('API failed:', error.message);
+                
+                // Quick fallback to static data
+                showLoading('Se încarcă stocul local...');
+                setTimeout(() => {
+                    loadFallbackData();
+                }, 500);
             }
-            
-            // All endpoints failed - show fallback data
-            console.log('All endpoints failed, loading fallback data...');
-            showLoading('Se încarcă date de rezervă...');
-            
-            setTimeout(() => {
-                loadFallbackData();
-            }, 1000);
         }
 
         // Fallback data when API fails
@@ -480,31 +452,31 @@
 
         function showFallbackNotice() {
             const notice = document.createElement('div');
-            notice.className = 'fixed top-20 left-4 right-4 bg-orange-50 border border-orange-200 rounded-xl p-4 z-50 shadow-lg';
+            notice.className = 'fixed top-20 left-4 right-4 bg-blue-50 border border-blue-200 rounded-xl p-4 z-50 shadow-lg';
             notice.innerHTML = `
                 <div class="flex items-start gap-3">
-                    <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs">⚠</span>
+                    <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs">ℹ</span>
                     </div>
                     <div>
-                        <h4 class="text-orange-800 font-semibold text-sm mb-1">Date de rezervă</h4>
-                        <p class="text-orange-700 text-sm">
-                            Nu putem accesa API-ul în acest moment. Sunt afișate date de demonstrație.
-                            Încercați să reîmprospătați pagina sau contactați-ne direct.
+                        <h4 class="text-blue-800 font-semibold text-sm mb-1">Stoc local</h4>
+                        <p class="text-blue-700 text-sm">
+                            Afișează stocul local salvat. Pentru stocul în timp real, 
+                            apăsați "Reîmprospătează" sau contactați-ne direct.
                         </p>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                                class="mt-2 text-xs text-orange-600 underline">Închide</button>
+                                class="mt-2 text-xs text-blue-600 underline">Închide</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(notice);
             
-            // Auto-hide after 10 seconds
+            // Auto-hide after 8 seconds
             setTimeout(() => {
                 if (notice.parentElement) {
                     notice.remove();
                 }
-            }, 10000);
+            }, 8000);
         }
 
         // Load catalog data
