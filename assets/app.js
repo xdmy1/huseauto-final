@@ -55,28 +55,25 @@ function determineSeatingCapacity(modelName) {
     return 5;
 }
 
-function calculatePriceForSeats(seatCount, isRomb = false) {
-    const basePriceRomb = 4300;
-    const basePriceRegular = 4200;
-    
+function calculatePriceForSeats(seatCount, isRomb = false, basePriceOverride = null) {
+    const basePrice = basePriceOverride || (isRomb ? 4300 : 4200);
+
     if (seatCount === 2) {
         return 2200;
     } else if (seatCount === 3) {
         return 3000;
-    } else if (seatCount === 4 || seatCount === 5) {
-        return isRomb ? basePriceRomb : basePriceRegular;
     } else if (seatCount >= 7) {
         return "Solicita pret";
     } else {
-        return isRomb ? basePriceRomb : basePriceRegular;
+        return basePrice;
     }
 }
 
 function getAdjustedPrice(product, selectedModel = "") {
     const seatCount = determineSeatingCapacity(selectedModel);
     const isRomb = product.title && product.title.toLowerCase().includes("romb");
-    const calculatedPrice = calculatePriceForSeats(seatCount, isRomb);
-    
+    const calculatedPrice = calculatePriceForSeats(seatCount, isRomb, product.basePrice);
+
     return calculatedPrice;
 }
 

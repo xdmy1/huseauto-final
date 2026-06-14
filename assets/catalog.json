@@ -2922,6 +2922,14 @@
       "title": "Huse Alcantara (Romb)"
     },
     {
+      "id": "nappa",
+      "title": "Huse Nappa"
+    },
+    {
+      "id": "eco_velur",
+      "title": "Huse Eco Piele + Velur"
+    },
+    {
       "id": "covorase_3d",
       "title": "Covorașe 3D"
     },
@@ -3672,6 +3680,28 @@
       "price": 4300,
       "image": "assets/catalogmasini/EcoPieleromb/EcoPiele_Romb_Negru_Tesetura_Rosie.png",
       "description": "Huse auto din eco piele romb, culoare negru tesetura rosie. Calitate premium, rezistente la uzura."
+    },
+    {
+      "id": 74,
+      "groupId": "nappa",
+      "title": "Nappa",
+      "code": "NAP01",
+      "color": "Negru",
+      "price": 5200,
+      "basePrice": 5200,
+      "image": "assets/catalogmasini/Nappa/nappa_negru_fata.jpg",
+      "description": "Huse auto din piele Nappa, culoare negru. Calitate premium, rezistente la uzura."
+    },
+    {
+      "id": 75,
+      "groupId": "eco_velur",
+      "title": "Eco Piele + Velur",
+      "code": "EPV01",
+      "color": "Gri Inchis",
+      "price": 4700,
+      "basePrice": 4700,
+      "image": "assets/catalogmasini/Velur/eco_piele_velur_gri_fata.jpg",
+      "description": "Huse auto din eco piele combinata cu velur, culoare gri inchis. Calitate premium, rezistente la uzura."
     }
   ]
 }
