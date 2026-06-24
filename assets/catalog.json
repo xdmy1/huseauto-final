@@ -2902,14 +2902,6 @@
   ],
   "productGroups": [
     {
-      "id": "nappa",
-      "title": "Huse Nappa"
-    },
-    {
-      "id": "eco_velur",
-      "title": "Huse Eco Piele + Velur"
-    },
-    {
       "id": "eco_alc",
       "title": "Huse Eco Piele+Alcantara"
     },
@@ -2928,6 +2920,10 @@
     {
       "id": "alc_romb",
       "title": "Huse Alcantara (Romb)"
+    },
+    {
+      "id": "premium",
+      "title": "Huse Premium"
     },
     {
       "id": "covorase_3d",
@@ -3683,7 +3679,7 @@
     },
     {
       "id": 74,
-      "groupId": "nappa",
+      "groupId": "premium",
       "title": "Nappa",
       "code": "NAP01",
       "color": "Negru",
@@ -3694,7 +3690,7 @@
     },
     {
       "id": 75,
-      "groupId": "eco_velur",
+      "groupId": "premium",
       "title": "Eco Piele + Velur",
       "code": "EPV01",
       "color": "Gri Inchis",
