@@ -2902,6 +2902,14 @@
   ],
   "productGroups": [
     {
+      "id": "nappa",
+      "title": "Huse Nappa"
+    },
+    {
+      "id": "eco_velur",
+      "title": "Huse Eco Piele + Velur"
+    },
+    {
       "id": "eco_alc",
       "title": "Huse Eco Piele+Alcantara"
     },
@@ -2920,14 +2928,6 @@
     {
       "id": "alc_romb",
       "title": "Huse Alcantara (Romb)"
-    },
-    {
-      "id": "nappa",
-      "title": "Huse Nappa"
-    },
-    {
-      "id": "eco_velur",
-      "title": "Huse Eco Piele + Velur"
     },
     {
       "id": "covorase_3d",
@@ -3687,8 +3687,8 @@
       "title": "Nappa",
       "code": "NAP01",
       "color": "Negru",
-      "price": 5200,
-      "basePrice": 5200,
+      "price": 5300,
+      "basePrice": 5300,
       "image": "assets/catalogmasini/Nappa/nappa_negru_fata.jpg",
       "description": "Huse auto din piele Nappa, culoare negru. Calitate premium, rezistente la uzura."
     },
