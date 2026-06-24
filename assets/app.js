@@ -56,7 +56,7 @@ function determineSeatingCapacity(modelName) {
 }
 
 function calculatePriceForSeats(seatCount, isRomb = false, basePriceOverride = null) {
-    const basePrice = basePriceOverride || (isRomb ? 4300 : 4200);
+    const basePrice = basePriceOverride || 4500;
 
     if (seatCount === 2) {
         return 2200;
@@ -778,7 +778,8 @@ function updateOrderSummary(product) {
     
     if (elements.selectedProductTitle) elements.selectedProductTitle.textContent = `${product.title} - ${product.code}`;
     if (elements.selectedProductColor) elements.selectedProductColor.textContent = product.color;
-    if (elements.selectedProductPrice) elements.selectedProductPrice.textContent = `${product.price} MDL`;
+    const adjustedPrice = getAdjustedPrice(product, selected.model);
+    if (elements.selectedProductPrice) elements.selectedProductPrice.textContent = adjustedPrice === "Solicita pret" ? "Solicita pret" : `${adjustedPrice} MDL`;
     if (elements.selectedBrand) elements.selectedBrand.textContent = selected.brand || '-';
     if (elements.selectedModel) elements.selectedModel.textContent = selected.model || '-';
     if (elements.selectedYear) elements.selectedYear.textContent = selected.year || '-';
