@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
     // requests are served instantly; stale-while-revalidate refreshes in the
     // background so users never wait on the slow upstream fetch again.
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=1800');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
     res.status(200).send(xmlData);
 
   } catch (error) {

@@ -1,6 +1,7 @@
 {
   "buildCommand": "echo 'No build needed for static site'",
   "outputDirectory": ".",
+  "regions": ["fra1"],
   "functions": {
     "api/stock.js": {
       "maxDuration": 60
