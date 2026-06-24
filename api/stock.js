@@ -1,3 +1,5 @@
+const zlib = require('zlib');
+
 module.exports = async (req, res) => {
   // Enable CORS for all origins
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,12 +45,20 @@ module.exports = async (req, res) => {
 
     const xmlData = await response.text();
 
+    // The raw XML is ~17MB, which exceeds Vercel's CDN cacheable-object size
+    // limit and is slow to transfer. Gzip it (~10x smaller) so the response is
+    // both cacheable at the CDN and fast for the client to download. Browsers
+    // transparently decompress responses sent with Content-Encoding: gzip.
+    const gzipped = zlib.gzipSync(Buffer.from(xmlData, 'utf-8'));
+
     // Cache the (slow, rarely-changing) result at Vercel's CDN. Subsequent
     // requests are served instantly; stale-while-revalidate refreshes in the
     // background so users never wait on the slow upstream fetch again.
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Content-Encoding', 'gzip');
+    res.setHeader('Vary', 'Accept-Encoding');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=86400');
-    res.status(200).send(xmlData);
+    res.status(200).send(gzipped);
 
   } catch (error) {
     console.error('Stock API error:', error);
