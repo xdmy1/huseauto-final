@@ -20,10 +20,12 @@ module.exports = async (req, res) => {
     // The external API URL
     const apiUrl = 'https://avtopilot-base.ru/bitrix/catalog_export/yandex_cases_1.php?login=gutudenis901@mail.ru&password=GLKIr0W7vn';
     
-    // Fetch data from the external API with AbortController for timeout
+    // Fetch data from the external API with AbortController for timeout.
+    // The upstream returns a large (~17MB) XML and can be slow, so allow
+    // almost the full function budget (maxDuration is 60s in vercel.json).
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
-    
+    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 second timeout
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
@@ -40,9 +42,12 @@ module.exports = async (req, res) => {
     }
 
     const xmlData = await response.text();
-    
-    // Return the XML data with proper content type
-    res.setHeader('Content-Type', 'application/xml');
+
+    // Cache the (slow, rarely-changing) result at Vercel's CDN. Subsequent
+    // requests are served instantly; stale-while-revalidate refreshes in the
+    // background so users never wait on the slow upstream fetch again.
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=1800');
     res.status(200).send(xmlData);
 
   } catch (error) {
